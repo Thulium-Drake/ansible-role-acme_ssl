@@ -1,0 +1,93 @@
+---
+# What: Generate and request certificates via ACME
+#
+- name: Check ACME account key
+  stat:
+    path: "{{ acme_ssl_account_key }}"
+  register: k
+
+- name: Check ACME account
+  include_tasks:
+    file: acme_create_account.yml
+  when: k.stat.exists == false
+
+- name: Check certificate directory
+  file:
+    path: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}"
+    state: directory
+
+- name: Check certificate validity - {{ acme_ssl_domain }}
+  shell: |
+    EXP=$(date +%s -d "$(openssl -in {{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.cer -noout -enddate | cut -d= -f2)")
+    NOW=$(date +%s)
+    echo $(( ($EXP - $NOW) / (24 * 3600 ) ))
+  register: acme_ssl_cer
+  changed_when: acme_ssl_cer.stdout|int <= acme_ssl_validity_min
+
+- block:
+  - name: Clear old files - {{ acme_ssl_domain }}
+    file:
+      state: absent
+      path: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ item }}"
+    loop:
+      - "{{ acme_ssl_domain }}.key"
+      - "{{ acme_ssl_domain }}.csr"
+      - "{{ acme_ssl_domain }}.cer"
+      - "{{ acme_ssl_domain }}_fullchain.cer"
+      - "ca.cer"
+
+  - name: Generating new EC SSL key - {{ acme_ssl_domain }}
+    command: "openssl ecparam -genkey -name {{ acme_ssl_ecparam_curve }} -out {{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.key"
+    when: acme_ssl_type == 'ecdsa'
+
+  - name: Generating new SSL key - {{ acme_ssl_domain }}
+    command: "openssl genrsa -out {{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.key {{ acme_ssl_rsa_bits }}"
+    when: acme_ssl_type == 'rsa'
+
+  - name: Generating new CSR file - {{ acme_ssl_domain }}
+    command: "openssl req -new -sha256 -key {{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.key -out {{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.csr -subj /CN={{ acme_ssl_domain }}"
+
+  - name: Registering new ACME challenge - {{ acme_ssl_domain }}
+    acme_certificate:
+      account_key_src: "{{ acme_ssl_account_key }}"
+      challenge: "{{ acme_ssl_challenge_type }}"
+      acme_directory: "{{ acme_ssl_directory }}"
+      acme_version: "{{ acme_ssl_directory_version }}"
+      remaining_days: "{{ acme_ssl_validity_min }}"
+      csr: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.csr"
+      cert: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.cer"
+    register: acme_ssl_challenge
+
+  - block:
+    - name: Processing HTTP-01 challenge - {{ acme_ssl_domain }}
+      include_tasks:
+        file: acme_http01_create.yml
+      when: acme_ssl_challenge_type == 'http-01'
+
+    - name: Processing DNS-01 challenge - {{ acme_ssl_domain }}
+      include_tasks:
+        file: acme_dns01_create.yml
+      when: acme_ssl_challenge_type == 'dns-01'
+
+    - name: Validating and finishing request - {{ acme_ssl_domain }}
+      letsencrypt:
+        account_key: "{{ acme_ssl_key }}"
+        challenge: "{{ acme_ssl_challenge_type }}"
+        acme_directory: "{{ acme_ssl_directory }}"
+        acme_version: "{{ acme_ssl_directory_version }}"
+        remaining_days: "{{ acme_ssl_validity_min }}"
+        csr: "{{ ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.csr"
+        cert: "{{ ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.cer"
+        fullchain: "{{ ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}_fullchain.cer"
+        data: "{{ acme_ssl_challenge }}"
+    always:
+    - name: Cleaning up HTTP-01 challenge - {{ acme_ssl_domain }}
+      include_tasks:
+        file: acme_http01_cleanup.yml
+      when: acme_ssl_challenge_type == 'http-01'
+
+    - name: Cleaning up DNS-01 challenge - {{ acme_ssl_domain }}
+      include_tasks:
+        file: acme_dns01_cleanup.yml
+      when: acme_ssl_challenge_type == 'dns-01'
+    when: acme_ssl_challenge|changed

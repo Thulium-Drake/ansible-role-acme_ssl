@@ -1,0 +1,12 @@
+---
+# All tasks required for the cleanup of the DNS-01 challenge validation
+#
+- name: Remove challenge DNS records - {{ acme_ssl_domain }}
+  nsupdate:
+    server: "{{ acme_ssl_nameserver }}"
+    ttl: "60"
+    type: "TXT"
+    zone: "{{ acme_ssl_zone }}"
+    record:  "{{ acme_ssl_challenge['challenge_data'][acme_ssl_domain]['dns-01']['resource'] }}.{{ acme_ssl_domain }}."
+    value: "{{  acme_ssl_challenge['challenge_data'][acme_ssl_domain]['dns-01']['resource_value'] }}"
+    state: absent
