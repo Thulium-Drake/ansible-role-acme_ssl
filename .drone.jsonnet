@@ -47,23 +47,17 @@ local Converge(distro) = {
         host: { path: "/var/run/docker.sock" }
       },
     ],
-    networks: [
-      { name: "acmenet",
-        subnet: "10.30.50.0/24",
-        attachable: "true",
-      },
-    ],
     services: [
       { name: "pebble",
         image: "letsencrypt/pebble",
         commands: [
           "pebble --dnsserver 10.30.50.10:53",
         ],
-        networks: {
-          acmenet: {
-            ipv4_address: "10.30.50.2"
+        networks: [
+          { name: "acmenet",
+            ipv4_address: "10.30.50.2",
           },
-        },
+        ],
       },
     ],
 
