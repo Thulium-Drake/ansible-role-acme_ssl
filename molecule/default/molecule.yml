@@ -1,0 +1,28 @@
+---
+dependency:
+  name: 'galaxy'
+driver:
+  name: 'docker'
+lint:
+  name: 'yamllint'
+  options:
+    config-file: 'molecule/default/yamllint.yml'
+platforms:
+  - name: "acme-ssl-${MOLECULE_DISTRO:-debian9}"
+    image: "geerlingguy/docker-${MOLECULE_DISTRO:-debian9}-ansible:latest"
+    command: '/lib/systemd/systemd'
+    pre_build_image: true
+    volumes:
+      - '/sys/fs/cgroup:/sys/fs/cgroup:ro'
+    privileged: true
+    networks:
+      acmenet:
+        ipv4_address: '10.30.50.10'
+provisioner:
+  name: 'ansible'
+  lint:
+    name: 'ansible-lint'
+verifier:
+  name: 'testinfra'
+  lint:
+    name: 'flake8'

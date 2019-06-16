@@ -1,0 +1,76 @@
+---
+- name: 'Prepare'
+  hosts: 'all'
+  tasks:
+    - name: 'Add Pebble to hosts file'
+      lineinfile:
+        path: '/etc/hosts'
+        regexp: '^10\.30\.50\.2'
+        line: '10.30.50.2 pebble'
+        owner: 'root'
+        group: 'root'
+        mode: 0644
+        unsafe_writes: true
+    - name: 'Install tools'
+      package:
+        name:
+          - 'pdns-backend-sqlite3'
+          - 'python-dnspython'
+          - 'dnsutils'
+          - 'nginx-light'
+        state: 'present'
+    - name: 'Configure nsupdate'
+      copy:
+        dest: '/etc/powerdns/pdns.d/nsupdate.conf'
+        content: dnsupdate=yes
+        mode: 0644
+        owner: 'root'
+        group: 'root'
+    - name: 'Prepare - Restart PowerDNS'
+      service:
+        name: 'pdns.service'
+        state: 'restarted'
+    - name: 'Create DNS zone'
+      command: 'pdnsutil create-zone test.lab'
+      ignore_errors: true # This only fails when the container isn't freshly created
+    - name: 'Fill DNS zone'
+      nsupdate:
+        server: 'localhost'
+        ttl: 60
+        type: 'A'
+        zone: 'test.lab.'
+        record: 'site.test.lab.'
+        value: "{{ ansible_facts['default_ipv4']['address'] }}"
+        state: 'present'
+
+- name: 'Converge - DNS01 challenge'
+  hosts: 'all'
+  pre_tasks:
+    - name: 'Remove any pre-existing account keys/certs, if any'
+      file:
+        path: '/etc/acme-ssl'
+        state: 'absent'
+  roles:
+    - name: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
+  vars:
+    acme_ssl_directory: 'https://pebble:14000/dir'
+    acme_ssl_directory_validate: false
+    acme_ssl_domain: 'site.test.lab'
+    acme_ssl_zone: 'test.lab'
+    acme_ssl_nameserver: 'localhost'
+
+- name: 'Converge - HTTP01 challenge'
+  hosts: 'all'
+  pre_tasks:
+    - name: 'Remove any pre-existing account keys/certs, if any'
+      file:
+        path: '/etc/acme-ssl'
+        state: 'absent'
+  roles:
+    - name: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
+  vars:
+    acme_ssl_directory: 'https://pebble:14000/dir'
+    acme_ssl_directory_validate: false
+    acme_ssl_domain: 'site.test.lab'
+    acme_ssl_challenge_type: 'http-01'
+    acme_ssl_challenge_location: '/var/www/html'

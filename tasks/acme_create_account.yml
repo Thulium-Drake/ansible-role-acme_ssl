@@ -1,14 +1,23 @@
 ---
 # Tasks to create a new account on the ACME server
 #
-- name: Generating new EC SSL key - ACME account
-  command: "openssl ecparam -genkey -name {{ acme_ssl_ecparam_curve }} -out {{ acme_ssl_account_key }}"
+- name: 'Create basedir - ACME account'
+  file:
+    path: "{{ acme_ssl_basedir }}"
+    state: 'directory'
 
-- name: Create ACME account
+- name: 'Generating new EC SSL key - ACME account'
+  openssl_privatekey:
+    path: "{{ acme_ssl_account_key }}"
+    curve: "{{ acme_ssl_ecparam_curve }}"
+    type: 'ECC'
+
+- name: 'Create ACME account'
   acme_account:
     account_key_src: "{{ acme_ssl_account_key }}"
-    state: present
+    state: 'present'
     acme_directory: "{{ acme_ssl_directory }}"
+    validate_certs: "{{ acme_ssl_directory_validate }}"
     acme_version: "{{ acme_ssl_directory_version }}"
     terms_agreed: "{{ acme_ssl_terms_agreed }}"
     contact:

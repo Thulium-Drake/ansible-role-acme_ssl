@@ -1,19 +1,12 @@
 ---
 # All tasks required to create the validation for the DNS-01 challenge
 #
-- name: Check required packages - Redhat-like
-  yum:
+- name: 'Check required packages'
+  package:
     name: [ 'python-dnspython', 'dnsutils' ]
-    state: present
-  when: ansible_os_family == "RedHat"
+    state: 'present'
 
-- name: Check required packages - Debian-like
-  apt:
-    name: [ 'python-dnspython', 'dnsutils' ]
-    state: present
-  when: ansible_os_family == "Debian"
-
-- name: Register challenge DNS records - {{ acme_domain }}
+- name: "Register challenge DNS records - {{ acme_domain }}"
   nsupdate:
     server: "{{ acme_ssl_nameserver }}"
     ttl: "60"
@@ -21,7 +14,8 @@
     zone: "{{ acme_ssl_zone | default(acme_ssl_domain.split('.')[-2:]) }}"
     record:  "{{ acme_ssl_challenge['challenge_data'][acme_ssl_domain]['dns-01']['resource'] }}.{{ acme_ssl_domain }}."
     value: "{{  acme_ssl_challenge['challenge_data'][acme_ssl_domain]['dns-01']['resource_value'] }}"
-    state: present
-- name: Wait for DNS to be updated - {{ acme_domain }}
-  pause:
-    minutes: 6
+    state: 'present'
+  register: 'dns_registered'
+  retries: 5
+  delay: 3
+  until: not dns_registered.failed
