@@ -9,7 +9,7 @@
 - name: 'Check ACME account'
   include_tasks:
     file: 'acme_create_account.yml'
-  when: k.stat.exists == false
+  when: not k.stat.exists
 
 - name: 'Check certificate directory'
   file:
@@ -17,12 +17,12 @@
     state: 'directory'
 
 - name: "Check certificate validity - {{ acme_ssl_domain }}"
-  shell: |
-    EXP=$(date +%s -d "$(openssl -in {{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.cer -noout -enddate | cut -d= -f2)")
-    NOW=$(date +%s)
-    echo $(( ($EXP - $NOW) / (24 * 3600 ) ))
-  register: 'acme_ssl_cer'
-  changed_when: acme_ssl_cer.stdout|int <= acme_ssl_validity_min
+  openssl_certificate:
+    path: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.cer"
+    provider: 'assertonly'
+    valid_in: "{{ (acme_ssl_validity_min * 24 * 3600)| int | abs }}"
+  register: 'acme_ssl_validity'
+  ignore_errors: true
 
 - block:
   - name: "Clear old files - {{ acme_ssl_domain }}"
@@ -106,3 +106,4 @@
         file: 'acme_dns01_cleanup.yml'
       when: acme_ssl_challenge_type == 'dns-01'
     when: acme_ssl_challenge is changed
+  when: acme_ssl_validity.failed

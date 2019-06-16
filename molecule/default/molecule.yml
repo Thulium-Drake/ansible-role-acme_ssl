@@ -16,8 +16,8 @@ platforms:
       - '/sys/fs/cgroup:/sys/fs/cgroup:ro'
     privileged: true
     networks:
-      - acmenet:
-          ipv4_address: '10.30.50.10'
+      - name: "acmenet"
+        ipv4_address: '10.30.50.10'
 provisioner:
   name: 'ansible'
   lint:

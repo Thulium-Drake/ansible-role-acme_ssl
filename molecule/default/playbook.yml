@@ -26,12 +26,18 @@
         mode: 0644
         owner: 'root'
         group: 'root'
-    - name: 'Prepare - Restart PowerDNS'
+    - name: 'Restart services'
       service:
-        name: 'pdns.service'
+        name: "{{ service }}"
         state: 'restarted'
+      loop:
+        - 'pdns'
+        - 'nginx'
+      loop_control:
+        loop_var: 'service'
     - name: 'Create DNS zone'
       command: 'pdnsutil create-zone test.lab'
+      changed_when: true
       ignore_errors: true # This only fails when the container isn't freshly created
     - name: 'Fill DNS zone'
       nsupdate:
