@@ -26,6 +26,17 @@
         mode: 0644
         owner: 'root'
         group: 'root'
+    - name: 'Configure nginx port'
+      copy:
+        dest: '/etc/nginx/sites-enabled/pebble.conf'
+        content: |
+          server {
+            listen 5002;
+            root /var/www/html;
+            location / {
+              try_files $uri $uri/ =404;
+            }
+          }
     - name: 'Restart services'
       service:
         name: "{{ service }}"
