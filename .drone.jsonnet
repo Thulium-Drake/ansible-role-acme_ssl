@@ -12,6 +12,11 @@ local Converge(distro) = {
   volumes: [
     { name: "docker", path: "/var/run/docker.sock" },
   ],
+  networks: [
+    { name: "acmenet",
+      ipv4_address: "10.30.50.10",
+    }
+  ],
 };
 
 [
