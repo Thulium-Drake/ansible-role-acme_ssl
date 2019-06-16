@@ -45,6 +45,9 @@ local Converge(distro) = {
       { name: "docker",
         host: { path: "/var/run/docker.sock" }
       },
+      { name: "pebble-config",
+        host: { path: "/drone/src/molecule/default/pebble-config.json" }
+      },
     ],
     networks: [
       { name: "acmenet",
@@ -56,13 +59,15 @@ local Converge(distro) = {
       { name: "pebble",
         image: "letsencrypt/pebble",
         commands: [
-          "pebble -config /test/my-pebble-config.json --dnsserver 10.30.50.10:53",
+          "pebble -config /test/pebble-config.json --dnsserver 10.30.50.10:53",
         ],
         networks: {
           acmenet: {
             ipv4_address: "10.30.50.2"
           },
         },
+        volumes: [
+          { name: "pebble-config", path: "/test/pebble-config.json" },
       },
     ],
 
