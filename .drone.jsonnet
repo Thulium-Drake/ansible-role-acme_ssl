@@ -51,6 +51,7 @@ local Converge(distro) = {
       { name: "pebble",
         image: "letsencrypt/pebble",
         commands: [
+          "ip a",
           "pebble --dnsserver 10.30.50.10:53",
         ],
         networks: [
