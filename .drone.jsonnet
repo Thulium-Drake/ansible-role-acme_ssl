@@ -3,7 +3,7 @@ local Converge(distro) = {
   image: "quay.io/ansible/molecule",
   commands: [
     "molecule destroy",
-    "molecule converge",
+    "molecule --debug converge",
     "molecule destroy",
   ],
   environment:
