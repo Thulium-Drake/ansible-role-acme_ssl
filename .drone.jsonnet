@@ -68,6 +68,7 @@ local Converge(distro) = {
         },
         volumes: [
           { name: "pebble-config", path: "/test/pebble-config.json" },
+        ],
       },
     ],
 
