@@ -22,3 +22,12 @@ This role will request the certificates on the Ansible Control Host and distribu
 T.B.W.
 
 Not ready for production use just yet, so no docs available...
+
+# Drone setup
+Because testing this setup requires some machines with a static IP, the destroy playbook for Molecule has been altered to not destroy the network.
+
+In order to make this run in Drone, create a network in Docker with the following command:
+
+```
+docker network create --attachable --subnet 10.30.50.0/24 acmenet
+```
