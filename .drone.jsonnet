@@ -2,8 +2,9 @@ local Converge(distro) = {
   name: "Converge - "+distro,
   image: "quay.io/ansible/molecule",
   commands: [
+    "pip install -U ansible",
     "molecule destroy",
-    "molecule --debug converge",
+    "molecule converge",
     "molecule destroy",
   ],
   environment:
