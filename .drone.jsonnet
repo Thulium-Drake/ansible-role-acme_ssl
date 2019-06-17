@@ -47,20 +47,6 @@ local Converge(distro) = {
         host: { path: "/var/run/docker.sock" }
       },
     ],
-    services: [
-      { name: "pebble",
-        image: "letsencrypt/pebble",
-        commands: [
-          "ip a",
-          "pebble --dnsserver 10.30.50.10:53",
-        ],
-        networks: [
-          { name: "acmenet",
-            ipv4_address: "10.30.50.2",
-          },
-        ],
-      },
-    ],
 
     depends_on: [
       "Lint",

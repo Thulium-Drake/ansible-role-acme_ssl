@@ -1,6 +1,7 @@
 ---
 dependency:
-  name: 'galaxy'
+  name: 'shell'
+  command: "docker network create --attachable --subnet 10.30.50.0/24 acmenet"
 driver:
   name: 'docker'
 lint:
@@ -8,7 +9,7 @@ lint:
   options:
     config-file: 'molecule/default/yamllint.yml'
 platforms:
-  - name: "acme-ssl-${MOLECULE_DISTRO:-debian9}"
+  - name: "acme-ssl-client"
     image: "geerlingguy/docker-${MOLECULE_DISTRO:-debian9}-ansible:latest"
     command: '/lib/systemd/systemd'
     pre_build_image: true
@@ -18,6 +19,12 @@ platforms:
     networks:
       - name: "acmenet"
         ipv4_address: '10.30.50.10'
+  - name: 'pebble'
+    image: 'letsencrypt/pebble'
+    command: 'pebble --dnsserver 10.30.50.10:53'
+    networks:
+      - name: "acmenet"
+        ipv4_address: '10.30.50.2'
 provisioner:
   name: 'ansible'
   lint:

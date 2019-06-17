@@ -2,8 +2,8 @@
 This role will roll manage SSL certificates for given hosts using the ACME
 protocol.
 
-The default (and tested!) setup is using Let's Encrypt, but when configured
-accordingly, it should also work with any other ACME server.
+The default (and tested!) setup is using Pebble (https://github.com/letsencrypt/pebble), but when configured
+accordingly, it should also work with any other ACME-compliant server.
 
 NOTE: This role is still in development, it is NOT ready for production use just yet! Stay tuned!
 
@@ -22,12 +22,3 @@ This role will request the certificates on the Ansible Control Host and distribu
 T.B.W.
 
 Not ready for production use just yet, so no docs available...
-
-# Drone setup
-Because testing this setup requires some machines with a static IP, the destroy playbook for Molecule has been altered to not destroy the network.
-
-In order to make this run in Drone, create a network in Docker with the following command:
-
-```
-docker network create --attachable --subnet 10.30.50.0/24 acmenet
-```

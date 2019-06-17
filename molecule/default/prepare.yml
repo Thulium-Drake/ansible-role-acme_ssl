@@ -1,0 +1,66 @@
+---
+- name: 'Prepare'
+  hosts: 'acme-ssl-client'
+  tasks:
+    - name: 'Add Pebble to hosts file'
+      lineinfile:
+        path: '/etc/hosts'
+        regexp: '^10\.30\.50\.2'
+        line: '10.30.50.2 pebble'
+        owner: 'root'
+        group: 'root'
+        mode: 0644
+        unsafe_writes: true
+    - name: 'Install tools'
+      package:
+        name:
+          - 'pdns-backend-sqlite3'
+          - 'python-dnspython'
+          - 'dnsutils'
+          - 'nginx-light'
+        state: 'present'
+    - name: 'Configure nsupdate'
+      copy:
+        dest: '/etc/powerdns/pdns.d/nsupdate.conf'
+        content: dnsupdate=yes
+        mode: 0644
+        owner: 'root'
+        group: 'root'
+    - name: 'Configure nginx port'
+      copy:
+        dest: '/etc/nginx/sites-enabled/pebble.conf'
+        content: |
+          server {
+            listen 5002;
+            root /var/www/html;
+            location / {
+              try_files $uri $uri/ =404;
+            }
+          }
+    - name: 'Restart services'
+      service:
+        name: "{{ service }}"
+        state: 'restarted'
+      loop:
+        - 'pdns'
+        - 'nginx'
+      loop_control:
+        loop_var: 'service'
+    - name: 'Create DNS zone'
+      command: 'pdnsutil create-zone test.lab'
+      changed_when: true
+      ignore_errors: true # This only fails when the container isn't freshly created
+    - name: 'Fill DNS zone'
+      nsupdate:
+        server: 'localhost'
+        ttl: 60
+        type: 'A'
+        zone: 'test.lab.'
+        record: "{{ record }}"
+        value: "{{ ansible_facts['default_ipv4']['address'] }}"
+        state: 'present'
+      loop:
+        - 'dns-validated.test.lab.'
+        - 'http-validated.test.lab.'
+      loop_control:
+        loop_var: 'record'
