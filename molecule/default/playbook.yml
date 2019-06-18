@@ -1,22 +1,19 @@
 ---
-- name: 'Converge - DNS01 challenge'
+- name: 'Converge'
   hosts: 'acme-ssl-client'
-  roles:
-    - name: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
+  tasks:
+    - include_role:
+        name: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
   vars:
-    acme_ssl_directory: 'https://pebble:14000/dir'
-    acme_ssl_directory_validate: false
-    acme_ssl_domain: 'dns-validated.test.lab'
-    acme_ssl_zone: 'test.lab'
-    acme_ssl_nameserver: 'localhost'
+    acme_ssl_certificates:
+      - { domain: 'dns-validated.test.lab',     type: 'dns-01',   dns_zone: 'test.lab',     server: '10.30.50.3' }
+      - { domain: 'dns-validated-2.test.lab',   type: 'dns-01',   dns_zone: 'test.lab',     server: '10.30.50.3' }
+      - { domain: 'http-validated.test.lab',    type: 'http-01',  web_dir: '/var/www/html', server: '10.30.50.3' }
+      - { domain: 'http-validated-2.test.lab',  type: 'http-01',  web_dir: '/var/www/html', server: '10.30.50.3' }
 
-- name: 'Converge - HTTP01 challenge'
-  hosts: 'acme-ssl-client'
-  roles:
-    - name: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
-  vars:
     acme_ssl_directory: 'https://pebble:14000/dir'
+    acme_ssl_ca_url: 'https://pebble:14000/root'
     acme_ssl_directory_validate: false
-    acme_ssl_domain: 'http-validated.test.lab'
-    acme_ssl_challenge_type: 'http-01'
-    acme_ssl_challenge_location: '/var/www/html'
+
+    acme_ssl_nameserver: '10.30.50.3'
+    acme_ssl_webserver: '10.30.50.3'

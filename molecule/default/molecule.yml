@@ -1,7 +1,7 @@
 ---
 dependency:
   name: 'shell'
-  command: "docker network create --attachable --subnet 10.30.50.0/24 acmenet"
+  command: bash ${MOLECULE_PROJECT_DIRECTORY}/molecule/default/docker-network.sh
 driver:
   name: 'docker'
 lint:
@@ -18,10 +18,21 @@ platforms:
     privileged: true
     networks:
       - name: "acmenet"
-        ipv4_address: '10.30.50.10'
+        ipv4_address: '10.30.50.4'
+  - name: "acme-ssl-helper"
+    image: "geerlingguy/docker-debian9-ansible:latest"
+    command: '/lib/systemd/systemd'
+    pre_build_image: true
+    volumes:
+      - '/sys/fs/cgroup:/sys/fs/cgroup:ro'
+    privileged: true
+    networks:
+      - name: "acmenet"
+        ipv4_address: '10.30.50.3'
   - name: 'pebble'
     image: 'letsencrypt/pebble'
-    command: 'pebble --dnsserver 10.30.50.10:53'
+    command: 'pebble --dnsserver 10.30.50.3:53'
+    pre_build_image: true
     networks:
       - name: "acmenet"
         ipv4_address: '10.30.50.2'

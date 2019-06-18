@@ -5,7 +5,9 @@
   file:
     path: "{{ acme_ssl_challenge_location }}/.well-known/acme-challenge"
     state: 'directory'
+  delegate_to: "{{ acme_ssl_webserver }}"
 - name: "Place challenge token on webserver - {{ acme_ssl_domain }}"
   copy:
     dest: "{{ acme_ssl_challenge_location }}/{{ acme_ssl_challenge['challenge_data'][acme_ssl_domain]['http-01']['resource'] }}"
     content: "{{  acme_ssl_challenge['challenge_data'][acme_ssl_domain]['http-01']['resource_value'] }}"
+  delegate_to: "{{ acme_ssl_webserver }}"

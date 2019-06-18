@@ -6,7 +6,7 @@
     name: [ 'python-dnspython', 'dnsutils' ]
     state: 'present'
 
-- name: "Register challenge DNS records - {{ acme_domain }}"
+- name: "Register challenge DNS records - {{ acme_ssl_domain }}"
   nsupdate:
     server: "{{ acme_ssl_nameserver }}"
     ttl: "60"

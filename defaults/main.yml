@@ -4,13 +4,19 @@ acme_ssl_destdir: '/etc/ssl/acme'        # SSL destination dir on the target ser
 
 acme_ssl_account_key: "{{ acme_ssl_basedir }}/account.key"  # Account key for ACME
 acme_ssl_directory_version: 2                               # Which ACME version to use
-acme_ssl_directory_validate: true                           # Check the certificates for the ACME directory
 acme_ssl_terms_agreed: true                                 # Accept the terms of the ACME directory
 acme_ssl_admin_email: 'root@example.com'                    # Accept the terms of the ACME directory
 
 # Which ACME directory to use
 acme_ssl_directory: 'https://acme-staging-v02.api.letsencrypt.org/directory'  # Staging
 #acme_ssl_directory: 'https://acme-v02.api.letsencrypt.org/directory'         # Production
+
+acme_ssl_directory_validate: true                           # Check the certificates for the ACME directory
+
+# ACME CA certificate URL
+acme_ssl_ca_url: 'https://letsencrypt.org/certs/fakeleintermediatex1.pem'               # Staging
+#acme_ssl_ca_url: 'https://letsencrypt.org/certs/letsencryptauthorityx3.pem.txt'        # Production
+#acme_ssl_ca_url: 'https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem.txt'  # Production, cross-signed
 
 acme_ssl_rsa_bits: 4096                 # How long to make RSA keys
 acme_ssl_ecparam_curve: 'secp384r1'     # Which elliptic curve to use for the private key
@@ -19,10 +25,10 @@ acme_ssl_validity_min: 30               # How many days a cert can have left bef
 acme_ssl_type: 'ECC'                    # Default certificate type
 acme_ssl_challenge_type: 'dns-01'       # Default challenge type
 
-acme_ssl_api_host: 'localhost'          # Host that has access to the ACME API and the DNS master server (if used)
 acme_ssl_nameserver: 'ns1.example.com'  # DNS master server
+acme_ssl_webserver: 'www.example.com'   # Webserver to use for validation
 
-##
-# acme_ssl_domain: certificate to request
-# acme_ssl_zone: DNS zone to update for DNS-01 challenge
-# acme_ssl_challenge_location: webdir to update for HTTP-01 challenge
+# The certficates that are requested
+acme_ssl_certificates:
+  - { domain: 'site.example.com',       challenge: 'dns-01',  dns_zone: 'example.com',  server: '127.0.0.1' }
+  - { domain: 'othersite.example.com',  challenge: 'http-01', web_dir: '/var/www/html', server: 'localhost' }

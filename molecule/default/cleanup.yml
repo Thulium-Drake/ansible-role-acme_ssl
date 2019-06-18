@@ -1,0 +1,14 @@
+---
+- name: 'Clean up'
+  hosts: 'acme-ssl-client'
+  gather_facts: false
+  tasks:
+    - name: 'Remove all ACME files on ACME client'
+      file:
+        path: '/etc/acme-ssl'
+        state: 'absent'
+    - name: 'Remove all ACME files on Ansible master'
+      file:
+        path: '/etc/acme-ssl'
+        state: 'absent'
+      delegate_to: 'localhost'

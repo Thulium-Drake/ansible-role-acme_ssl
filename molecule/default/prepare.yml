@@ -1,6 +1,26 @@
 ---
-- name: 'Prepare'
+- name: 'Prepare Molecule node'
+  hosts: 'localhost'
+  gather_facts: false
+  tasks:
+    - name: 'Place SSH private key'
+      copy:
+        dest: '/root/.ssh/id_ed25519'
+        content: |
+          -----BEGIN OPENSSH PRIVATE KEY-----
+          b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+          QyNTUxOQAAACDQR3tn7HzM+bpTKgFyWNT1gTcpnHpl4jyOwVt9f+chIQAAAJh1xBcNdcQX
+          DQAAAAtzc2gtZWQyNTUxOQAAACDQR3tn7HzM+bpTKgFyWNT1gTcpnHpl4jyOwVt9f+chIQ
+          AAAEBRzp1N5iRuu5cf2VOII+BLBMftSn5jesiwKsjW/jTsktBHe2fsfMz5ulMqAXJY1PWB
+          NymcemXiPI7BW31/5yEhAAAAFHJvb3RAYWNtZS1zc2wtaGVscGVyAQ==
+          -----END OPENSSH PRIVATE KEY-----
+        mode: 0600
+        owner: 'root'
+        group: 'root'
+
+- name: 'Prepare ACME client node'
   hosts: 'acme-ssl-client'
+  gather_facts: false
   tasks:
     - name: 'Add Pebble to hosts file'
       lineinfile:
@@ -11,21 +31,44 @@
         group: 'root'
         mode: 0644
         unsafe_writes: true
+
+- name: 'Prepare helper node'
+  gather_facts: false
+  hosts: 'acme-ssl-helper'
+  tasks:
     - name: 'Install tools'
-      package:
+      apt:
         name:
           - 'pdns-backend-sqlite3'
           - 'python-dnspython'
           - 'dnsutils'
           - 'nginx-light'
+          - 'openssh-server'
         state: 'present'
+        update_cache: true
     - name: 'Configure nsupdate'
       copy:
         dest: '/etc/powerdns/pdns.d/nsupdate.conf'
-        content: dnsupdate=yes
+        content: |
+          dnsupdate=yes
+          allow-dnsupdate-from=10.30.50.0/24,127.0.0.1/32
         mode: 0644
         owner: 'root'
         group: 'root'
+    - name: 'Set root authorized_key'
+      authorized_key:
+        user: 'root'
+        key: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINBHe2fsfMz5ulMqAXJY1PWBNymcemXiPI7BW31/5yEh'
+        state: 'present'
+    - name: 'Allow SSH password logins'
+      lineinfile:
+        path: '/etc/ssh/sshd_config'
+        regexp: '^PermitRootLogin'
+        line: 'PermitRootLogin yes'
+        owner: 'root'
+        group: 'root'
+        mode: 0644
+        unsafe_writes: true
     - name: 'Configure nginx port'
       copy:
         dest: '/etc/nginx/sites-enabled/pebble.conf'
@@ -44,6 +87,7 @@
       loop:
         - 'pdns'
         - 'nginx'
+        - 'ssh'
       loop_control:
         loop_var: 'service'
     - name: 'Create DNS zone'
@@ -57,10 +101,12 @@
         type: 'A'
         zone: 'test.lab.'
         record: "{{ record }}"
-        value: "{{ ansible_facts['default_ipv4']['address'] }}"
+        value: '10.30.50.3'
         state: 'present'
       loop:
         - 'dns-validated.test.lab.'
+        - 'dns-validated-2.test.lab.'
         - 'http-validated.test.lab.'
+        - 'http-validated-2.test.lab.'
       loop_control:
         loop_var: 'record'

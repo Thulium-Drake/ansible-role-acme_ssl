@@ -1,0 +1,6 @@
+---
+acme_ssl_domain: "{{ certificate.domain }}"
+acme_ssl_zone: "{{ certificate.dns_zone }}"
+acme_ssl_challenge_location: "{{ certificate.web_dir }}"
+acme_ssl_challenge_type: "{{ certificate.type }}"
+acme_ssl_destserver: "{{ certificate.server }}"

@@ -1,0 +1,121 @@
+---
+# What: Generate and request certificates via ACME
+#
+- name: 'Check certificate directory'
+  file:
+    path: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}"
+    state: 'directory'
+
+- name: "Check certificate validity - {{ acme_ssl_domain }}"
+  openssl_certificate:
+    path: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.cer"
+    provider: 'assertonly'
+    valid_in: "{{ (acme_ssl_validity_min * 24 * 3600)| int | abs }}"
+  register: 'acme_cert_validity'
+  ignore_errors: true
+
+- block:
+  - name: "Clear old files - {{ acme_ssl_domain }}"
+    file:
+      state: 'absent'
+      path: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ item }}"
+    loop:
+      - "{{ acme_ssl_domain }}.key"
+      - "{{ acme_ssl_domain }}.csr"
+      - "{{ acme_ssl_domain }}.cer"
+      - "{{ acme_ssl_domain }}_fullchain.cer"
+      - 'ca.cer'
+
+  - name: "Generating new EC SSL key - {{ acme_ssl_domain }}"
+    openssl_privatekey:
+      path: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.key"
+      curve: "{{ acme_ssl_ecparam_curve }}"
+      type: "{{ acme_ssl_type }}"
+    when: acme_ssl_type == 'ECC'
+
+  - name: "Generating new SSL key - {{ acme_ssl_domain }}"
+    openssl_privatekey:
+      path: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.key"
+      size: "{{ acme_ssl_rsa_bits }}"
+      type: "{{ acme_ssl_type }}"
+    when: acme_ssl_type == 'RSA'
+
+  - name: "Generating new CSR file - {{ acme_ssl_domain }}"
+    openssl_csr:
+      path: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.csr"
+      privatekey_path: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.key"
+      common_name: "{{ acme_ssl_domain }}"
+
+  - name: "Registering new ACME challenge - {{ acme_ssl_domain }}"
+    acme_certificate:
+      account_key_src: "{{ acme_ssl_account_key }}"
+      challenge: "{{ acme_ssl_challenge_type }}"
+      acme_directory: "{{ acme_ssl_directory }}"
+      validate_certs: "{{ acme_ssl_directory_validate }}"
+      acme_version: "{{ acme_ssl_directory_version }}"
+      remaining_days: "{{ acme_ssl_validity_min }}"
+      csr: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.csr"
+      cert: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.cer"
+    register: 'acme_ssl_challenge'
+
+  - block:
+    - name: "Processing challenge - {{ acme_ssl_domain }}"
+      include_tasks:
+        file: 'acme_{{ acme_ssl_challenge_type }}_create.yml'
+
+    - name: "Validating and finishing request - {{ acme_ssl_domain }}"
+      acme_certificate:
+        account_key_src: "{{ acme_ssl_account_key }}"
+        challenge: "{{ acme_ssl_challenge_type }}"
+        acme_directory: "{{ acme_ssl_directory }}"
+        validate_certs: "{{ acme_ssl_directory_validate }}"
+        acme_version: "{{ acme_ssl_directory_version }}"
+        remaining_days: "{{ acme_ssl_validity_min }}"
+        csr: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.csr"
+        cert: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.cer"
+        fullchain: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}_fullchain.cer"
+        data: "{{ acme_ssl_challenge }}"
+      register: 'cert_validated'
+      retries: 6
+      delay: 60
+      until: not cert_validated.failed
+
+    - name: "Downloading Issuing CA certificate - {{ acme_ssl_domain }}"
+      uri:
+        url: "{{ acme_ssl_ca_url }}"
+        force: true
+        validate_certs: "{{ acme_ssl_directory_validate }}"
+        dest: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/ca.cer"
+
+    always:
+    - name: "Cleaning up challenge - {{ acme_ssl_domain }}"
+      include_tasks:
+        file: 'acme_{{ acme_ssl_challenge_type }}_cleanup.yml'
+    when: acme_ssl_challenge is changed
+  when: acme_cert_validity.failed
+
+- name: "Sync certificates to Ansible Master - {{ acme_ssl_domain }}"
+  fetch:
+    src: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ item }}"
+    dest: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ item }}"
+    fail_on_missing: false
+    flat: true
+  loop:
+    - "{{ acme_ssl_domain }}.key"
+    - "{{ acme_ssl_domain }}.csr"
+    - "{{ acme_ssl_domain }}.cer"
+    - "{{ acme_ssl_domain }}_fullchain.cer"
+    - 'ca.cer'
+
+- name: "Deploy certificates to Ansible Master - {{ acme_ssl_domain }}"
+  copy:
+    src: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ item }}"
+    dest: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ item }}"
+    fail_on_missing: false
+    flat: true
+  loop:
+    - "{{ acme_ssl_domain }}.key"
+    - "{{ acme_ssl_domain }}.csr"
+    - "{{ acme_ssl_domain }}.cer"
+    - "{{ acme_ssl_domain }}_fullchain.cer"
+    - 'ca.cer'
