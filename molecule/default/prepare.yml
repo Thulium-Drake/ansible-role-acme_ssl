@@ -3,6 +3,14 @@
   hosts: 'localhost'
   gather_facts: false
   tasks:
+    - name: 'Create SSH directory'
+      file:
+        path: '/root/.ssh'
+        state: 'directory'
+        mode: 0700
+        owner: 'root'
+        group: 'root'
+
     - name: 'Place SSH private key'
       copy:
         dest: '/root/.ssh/id_ed25519'
