@@ -7,9 +7,7 @@
   vars:
     acme_ssl_certificates:
       - { domain: 'dns-validated.test.lab',     type: 'dns-01',   dns_zone: 'test.lab',     server: '10.30.50.3' }
-      - { domain: 'dns-validated-2.test.lab',   type: 'dns-01',   dns_zone: 'test.lab',     server: '10.30.50.3' }
       - { domain: 'http-validated.test.lab',    type: 'http-01',  web_dir: '/var/www/html', server: '10.30.50.3' }
-      - { domain: 'http-validated-2.test.lab',  type: 'http-01',  web_dir: '/var/www/html', server: '10.30.50.3' }
 
     acme_ssl_directory: 'https://pebble:14000/dir'
     acme_ssl_ca_url: 'https://pebble:14000/root'

@@ -1,6 +1,6 @@
 ---
-- name: 'Prepare Molecule node'
-  hosts: 'localhost'
+- name: 'Prepare Molecule and ACME client nodes'
+  hosts: 'localhost,acme-ssl-client'
   gather_facts: false
   tasks:
     - name: 'Create SSH directory'
@@ -25,11 +25,6 @@
         mode: 0600
         owner: 'root'
         group: 'root'
-
-- name: 'Prepare ACME client node'
-  hosts: 'acme-ssl-client'
-  gather_facts: false
-  tasks:
     - name: 'Add Pebble to hosts file'
       lineinfile:
         path: '/etc/hosts'
@@ -113,8 +108,6 @@
         state: 'present'
       loop:
         - 'dns-validated.test.lab.'
-        - 'dns-validated-2.test.lab.'
         - 'http-validated.test.lab.'
-        - 'http-validated-2.test.lab.'
       loop_control:
         loop_var: 'record'
