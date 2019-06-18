@@ -1,0 +1,11 @@
+---
+- name: 'Create docker network'
+  hosts: 'localhost'
+  gather_facts: false
+  tasks:
+    - name: 'ACMEnet'
+      docker_network:
+        name: 'acmenet'
+        state: 'present'
+        ipam_options:
+          subnet: '10.30.50.0/24'

@@ -1,7 +1,7 @@
 ---
 dependency:
   name: 'shell'
-  command: bash ${MOLECULE_PROJECT_DIRECTORY}/molecule/default/docker-network.sh
+  command: ansible-playbook ${MOLECULE_PROJECT_DIRECTORY}/molecule/default/dependency.yml
 driver:
   name: 'docker'
 lint:
