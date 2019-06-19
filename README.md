@@ -22,6 +22,12 @@ The succesful execution of this role requires the following on the Ansible Contr
 This role will request the certificates on the Ansible Control Host and distribute them from there on, this allows for using the same certificate on multiple systems (for example, on a reverse proxy for webmail and the mailserver as well)
 
 # Usage
-T.B.W.
+After fulfilling the requirements above this role can be used as follows:
 
-Not ready for production use just yet, so no docs available...
+* Install the role (either from Galaxy or directly from GitHub)
+* Copy the defaults file to your inventory (or wherever you store them) and
+  fill in the blanks
+* Add the role to your master playbook
+* Run Ansible
+* ???
+* Profit!
