@@ -31,3 +31,7 @@ After fulfilling the requirements above this role can be used as follows:
 * Run Ansible
 * ???
 * Profit!
+
+After this role has run, it will have placed all requested certificates on the servers where you want to have them.
+
+Keep in mind: This role does *NOT* reconfigure software to actually use those certs!

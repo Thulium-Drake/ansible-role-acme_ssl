@@ -26,9 +26,13 @@ acme_ssl_type: 'ECC'                    # Default certificate type
 acme_ssl_challenge_type: 'dns-01'       # Default challenge type
 
 acme_ssl_nameserver: 'ns1.example.com'  # DNS master server
-acme_ssl_webserver: 'www.example.com'   # Webserver to use for validation
 
 # The certficates that are requested
+# domain: name of the certificate
+# challenge: dns-01 or http-01
+# dns_zone / web_dir: Directory/Zone to update with the challenge
+# server: destination server to use the cert on. Please note that this is also the webserver used for http-01 validation.
+# If you wish to have different machines where you want to mint certs and use them, use the dns-01 challenge.
 acme_ssl_certificates:
   - { domain: 'site.example.com',       challenge: 'dns-01',  dns_zone: 'example.com',  server: '127.0.0.1' }
   - { domain: 'othersite.example.com',  challenge: 'http-01', web_dir: '/var/www/html', server: 'localhost' }
