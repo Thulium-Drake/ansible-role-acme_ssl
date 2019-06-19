@@ -9,7 +9,7 @@
         state: 'present'
         ipam_config:
           - subnet: '10.30.50.0/24'
-          - iprange: '10.30.50.0/24'
+          - iprange: '10.30.50.0/26'
 
     - name: 'Connect Molecule docker to networks'
       docker_network:
