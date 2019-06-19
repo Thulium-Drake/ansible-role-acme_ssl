@@ -15,5 +15,5 @@
         name: 'ACMEnet'
         appends: true
         connected:
-          - "{{ ansble_facts['hostname'] }}"
+          - "{{ ansible_facts['hostname'] }}"
       when: ansible_facts['virtualization_type'] == 'docker'
