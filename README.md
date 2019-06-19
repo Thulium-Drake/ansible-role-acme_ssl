@@ -8,8 +8,6 @@ protocol.
 The default (and tested!) setup is using Pebble (https://github.com/letsencrypt/pebble), but when configured
 accordingly, it should also work with any other ACME-compliant server.
 
-NOTE: This role is still in development, it is NOT ready for production use just yet! Stay tuned!
-
 # Requirements
 The succesful execution of this role requires the following on the Ansible Control Host:
 
