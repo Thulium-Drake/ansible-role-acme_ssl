@@ -1,21 +1,19 @@
 ---
-- name: 'Create docker network'
+- name: 'Setup docker networking'
   hosts: 'localhost'
   gather_facts: true
   tasks:
-    - name: 'ACMEnet'
+    - name: 'Create ACMEnet'
       docker_network:
         name: 'acmenet'
         state: 'present'
         ipam_config:
           - subnet: '10.30.50.0/24'
 
-    - name: 'Connect Molecule docker to networks'
+    - name: 'Connect Molecule docker to ACMEnet'
       docker_network:
-        name: 'ACMEnet'
+        name: 'acmenet'
         appends: true
         connected:
           - "{{ ansible_facts['hostname'] }}"
-        ipam_config:
-          - subnet: '10.30.50.0/24'
       when: ansible_facts['virtualization_type'] == 'docker'
