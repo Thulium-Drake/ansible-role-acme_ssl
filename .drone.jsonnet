@@ -42,6 +42,7 @@ local Converge(distro) = {
     steps: [
       Converge("debian9"),
       Converge("ubuntu1804"),
+      Converge("centos7"),
     ],
     volumes: [
       { name: "docker",

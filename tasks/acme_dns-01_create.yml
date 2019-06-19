@@ -3,7 +3,7 @@
 #
 - name: 'Check required packages'
   package:
-    name: [ 'python-dnspython', 'dnsutils' ]
+    name: "{{ dns_packages }}"
     state: 'present'
 
 - name: "Register challenge DNS records - {{ acme_ssl_domain }}"

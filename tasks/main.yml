@@ -1,6 +1,9 @@
 ---
 # What: Generate and request certificates via ACME
 #
+- name: 'Include OS-family specific vars'
+  include_vars:
+    file: "{{ ansible_os_family }}.yml"
 - name: 'Install required packages'
   package:
     name: 'openssl'
