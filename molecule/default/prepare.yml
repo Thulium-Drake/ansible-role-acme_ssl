@@ -29,7 +29,7 @@
       lineinfile:
         path: '/etc/hosts'
         regexp: '^10\.30\.50\.10'
-        line: '10.30.50.2 pebble'
+        line: '10.30.50.10 pebble'
         owner: 'root'
         group: 'root'
         mode: 0644
