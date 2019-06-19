@@ -17,3 +17,5 @@
         connected:
           - "{{ ansible_facts['hostname'] }}"
       when: ansible_facts['virtualization_type'] == 'docker'
+  vars:
+    ansible_connection: 'local'
