@@ -1,6 +1,11 @@
 ---
 # What: Generate and request certificates via ACME
 #
+- name: 'Install required packages'
+  package:
+    name: 'openssl'
+    state: 'present'
+
 - name: 'Check ACME account key'
   stat:
     path: "{{ acme_ssl_account_key }}"

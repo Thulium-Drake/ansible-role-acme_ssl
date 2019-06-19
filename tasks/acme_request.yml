@@ -107,12 +107,13 @@
     - "{{ acme_ssl_domain }}_fullchain.cer"
     - 'ca.cer'
 
-- name: "Deploy certificates to Ansible Master - {{ acme_ssl_domain }}"
+- name: "Deploy certificates to target - {{ acme_ssl_domain }}"
   copy:
     src: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ item }}"
     dest: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ item }}"
     fail_on_missing: false
     flat: true
+    delegat_to: "{{ acme_ssl_destserver }}"
   loop:
     - "{{ acme_ssl_domain }}.key"
     - "{{ acme_ssl_domain }}.csr"
