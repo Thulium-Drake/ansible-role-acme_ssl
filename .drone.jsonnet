@@ -4,7 +4,7 @@ local Converge(distro) = {
   commands: [
     "pip install -U ansible",
     "molecule destroy",
-    "molecule --debug converge",
+    "molecule converge",
     "molecule idempotence",
     "molecule destroy",
   ],

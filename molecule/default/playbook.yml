@@ -6,12 +6,12 @@
         name: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
   vars:
     acme_ssl_certificates:
-      - { domain: 'dns-validated.test.lab',     type: 'dns-01',   dns_zone: 'test.lab',     server: '10.30.50.3' }
-      - { domain: 'http-validated.test.lab',    type: 'http-01',  web_dir: '/var/www/html', server: '10.30.50.3' }
+      - { domain: 'dns-validated.test.lab',     type: 'dns-01',   dns_zone: 'test.lab',     server: '10.30.50.11' }
+      - { domain: 'http-validated.test.lab',    type: 'http-01',  web_dir: '/var/www/html', server: '10.30.50.11' }
 
     acme_ssl_directory: 'https://pebble:14000/dir'
     acme_ssl_ca_url: 'https://pebble:14000/root'
     acme_ssl_directory_validate: false
 
-    acme_ssl_nameserver: '10.30.50.3'
-    acme_ssl_webserver: '10.30.50.3'
+    acme_ssl_nameserver: '10.30.50.11'
+    acme_ssl_webserver: '10.30.50.11'
