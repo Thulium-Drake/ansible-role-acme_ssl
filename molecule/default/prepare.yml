@@ -104,7 +104,7 @@
         type: 'A'
         zone: 'test.lab.'
         record: "{{ record }}"
-        value: '10.30.50.3'
+        value: '10.30.50.11'
         state: 'present'
       loop:
         - 'dns-validated.test.lab.'
