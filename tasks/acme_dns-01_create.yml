@@ -12,8 +12,8 @@
     ttl: "60"
     type: "TXT"
     zone: "{{ acme_ssl_zone | default(acme_ssl_domain.split('.')[-2:]) }}"
-    record:  "{{ acme_ssl_challenge['challenge_data'][acme_ssl_domain]['dns-01']['resource'] }}.{{ acme_ssl_domain }}."
-    value: "{{  acme_ssl_challenge['challenge_data'][acme_ssl_domain]['dns-01']['resource_value'] }}"
+    record:  "{{ acme_ssl_challenge_data['challenge_data'][acme_ssl_domain]['dns-01']['resource'] }}.{{ acme_ssl_domain }}."
+    value: "{{  acme_ssl_challenge_data['challenge_data'][acme_ssl_domain]['dns-01']['resource_value'] }}"
     state: 'present'
   register: 'dns_registered'
   retries: 5

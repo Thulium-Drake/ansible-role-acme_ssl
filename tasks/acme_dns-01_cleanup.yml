@@ -7,6 +7,6 @@
     ttl: "60"
     type: "TXT"
     zone: "{{ acme_ssl_zone }}"
-    record:  "{{ acme_ssl_challenge['challenge_data'][acme_ssl_domain]['dns-01']['resource'] }}.{{ acme_ssl_domain }}."
-    value: "{{  acme_ssl_challenge['challenge_data'][acme_ssl_domain]['dns-01']['resource_value'] }}"
+    record:  "{{ acme_ssl_challenge_data['challenge_data'][acme_ssl_domain]['dns-01']['resource'] }}.{{ acme_ssl_domain }}."
+    value: "{{  acme_ssl_challenge_data['challenge_data'][acme_ssl_domain]['dns-01']['resource_value'] }}"
     state: absent

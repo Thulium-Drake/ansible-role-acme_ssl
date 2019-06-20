@@ -49,24 +49,24 @@
   - name: "Registering new ACME challenge - {{ acme_ssl_domain }}"
     acme_certificate:
       account_key_src: "{{ acme_ssl_account_key }}"
-      challenge: "{{ acme_ssl_challenge_type }}"
+      challenge: "{{ acme_ssl_challenge }}"
       acme_directory: "{{ acme_ssl_directory }}"
       validate_certs: "{{ acme_ssl_directory_validate }}"
       acme_version: "{{ acme_ssl_directory_version }}"
       remaining_days: "{{ acme_ssl_validity_min }}"
       csr: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.csr"
       cert: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.cer"
-    register: 'acme_ssl_challenge'
+    register: 'acme_ssl_challenge_data'
 
   - block:
     - name: "Processing challenge - {{ acme_ssl_domain }}"
       include_tasks:
-        file: 'acme_{{ acme_ssl_challenge_type }}_create.yml'
+        file: 'acme_{{ acme_ssl_challenge }}_create.yml'
 
     - name: "Validating and finishing request - {{ acme_ssl_domain }}"
       acme_certificate:
         account_key_src: "{{ acme_ssl_account_key }}"
-        challenge: "{{ acme_ssl_challenge_type }}"
+        challenge: "{{ acme_ssl_challenge }}"
         acme_directory: "{{ acme_ssl_directory }}"
         validate_certs: "{{ acme_ssl_directory_validate }}"
         acme_version: "{{ acme_ssl_directory_version }}"
@@ -74,7 +74,7 @@
         csr: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.csr"
         cert: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.cer"
         fullchain: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}_fullchain.cer"
-        data: "{{ acme_ssl_challenge }}"
+        data: "{{ acme_ssl_challenge_data }}"
       register: 'cert_validated'
       retries: 6
       delay: 60
@@ -90,8 +90,8 @@
     always:
     - name: "Cleaning up challenge - {{ acme_ssl_domain }}"
       include_tasks:
-        file: 'acme_{{ acme_ssl_challenge_type }}_cleanup.yml'
-    when: acme_ssl_challenge is changed
+        file: 'acme_{{ acme_ssl_challenge }}_cleanup.yml'
+    when: acme_ssl_challenge_data is changed
   when: acme_cert_validity.failed
 
 - name: "Sync certificates to Ansible Master - {{ acme_ssl_domain }}"

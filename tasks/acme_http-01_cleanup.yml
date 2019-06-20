@@ -3,5 +3,5 @@
 #
 - name: Remove challenge token from webserver - {{ acme_ssl_domain }}
   file:
-    path: "{{ acme_ssl_challenge_location }}/{{ acme_ssl_challenge['challenge_data'][acme_ssl_domain]['http-01']['resource'] }}"
+    path: "{{ acme_ssl_challenge_location }}/{{ acme_ssl_challenge_data['challenge_data'][acme_ssl_domain]['http-01']['resource'] }}"
     state: absent
