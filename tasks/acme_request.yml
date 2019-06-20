@@ -109,13 +109,17 @@
     - "{{ acme_ssl_domain }}_fullchain.cer"
     - 'ca.cer'
 
+- name: "Create destdir on target - {{ acme_ssl_domain }}"
+  file:
+    path: "{{ acme_ssl_destdir }}/{{ acme_ssl_domain }}"
+    state: 'directory'
+  delegate_to: "{{ acme_ssl_destserver }}"
+
 - name: "Deploy certificates to target - {{ acme_ssl_domain }}"
   copy:
     src: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ item }}"
-    dest: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ item }}"
-    fail_on_missing: false
-    flat: true
-    delegate_to: "{{ acme_ssl_destserver }}"
+    dest: "{{ acme_ssl_destdir }}/{{ acme_ssl_domain }}/{{ item }}"
+  delegate_to: "{{ acme_ssl_destserver }}"
   loop:
     - "{{ acme_ssl_domain }}.key"
     - "{{ acme_ssl_domain }}.csr"
