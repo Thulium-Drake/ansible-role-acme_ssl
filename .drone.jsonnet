@@ -80,6 +80,9 @@ local Converge(distro) = {
       cron: [
         "weekly-build",
       ],
+      event: [
+        "tag",
+      ],
     },
     depends_on: [
       "Test",
