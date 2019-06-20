@@ -115,7 +115,7 @@
     dest: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ item }}"
     fail_on_missing: false
     flat: true
-    delegat_to: "{{ acme_ssl_destserver }}"
+    delegate_to: "{{ acme_ssl_destserver }}"
   loop:
     - "{{ acme_ssl_domain }}.key"
     - "{{ acme_ssl_domain }}.csr"
