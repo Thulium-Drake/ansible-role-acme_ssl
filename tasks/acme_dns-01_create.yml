@@ -19,3 +19,7 @@
   retries: 5
   delay: 3
   until: not dns_registered.failed
+
+- name: 'Wait for DNS update to propagate to slaves'
+  pause:
+    minutes: 2
