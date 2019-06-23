@@ -22,10 +22,13 @@ acme_ssl_rsa_bits: 4096                 # How long to make RSA keys
 acme_ssl_ecparam_curve: 'secp384r1'     # Which elliptic curve to use for the private key
 
 acme_ssl_validity_min: 30               # How many days a cert can have left before it's renewed
-acme_ssl_default_type: 'ECC'                    # Default certificate type
-acme_ssl_default_challenge: 'dns-01'       # Default challenge type
+acme_ssl_default_type: 'ECC'            # Default certificate type
+acme_ssl_default_challenge: 'dns-01'    # Default challenge type
 
 acme_ssl_nameserver: 'ns1.example.com'  # DNS master server
+
+acme_reload_services: false             # Automatically try to reload supported services:
+                                        # Nginx, Apache or Zimbra
 
 # The certficates that are requested
 # domain: name of the certificate

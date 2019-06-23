@@ -2,3 +2,5 @@
 dns_packages:
   - 'python-dns'
   - 'bind-utils'
+
+apache_service_name: 'httpd'
