@@ -26,8 +26,9 @@ acme_ssl_default_type: 'ECC'            # Default certificate type
 acme_ssl_default_challenge: 'dns-01'    # Default challenge type
 
 acme_ssl_nameserver: 'ns1.example.com'  # DNS master server
+acme_ssl_dns_wait: 120                  # Time to wait in seconds for DNS update to propagate
 
-acme_reload_services: false             # Automatically try to reload supported services:
+acme_ssl_reload_services: false         # Automatically try to reload supported services:
                                         # Nginx, Apache or Zimbra
 
 # The certficates that are requested

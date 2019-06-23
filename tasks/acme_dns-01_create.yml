@@ -22,4 +22,4 @@
 
 - name: 'Wait for DNS update to propagate to slaves'
   pause:
-    minutes: 2
+    seconds: "{{ acme_ssl_dns_wait }}"

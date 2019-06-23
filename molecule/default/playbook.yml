@@ -12,7 +12,8 @@
     acme_ssl_directory: 'https://pebble:14000/dir'
     acme_ssl_ca_url: 'https://pebble:14000/root'
     acme_ssl_directory_validate: false
-    acme_reload_services: true
+    acme_ssl_reload_services: true
+    acme_ssl_dns_wait: 1
 
     acme_ssl_nameserver: '10.30.50.11'
     acme_ssl_webserver: '10.30.50.11'

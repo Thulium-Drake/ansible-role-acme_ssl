@@ -164,9 +164,8 @@
       /opt/zimbra/bin/zmcertmgr verifycrt comm
       /opt/zimbra/bin/zmcertmgr deploycrt comm
       sudo -u zimbra /opt/zimbra/bin/zmcontrol restart
-    when: >
-      (ansible_facts['packages']['zimbra-core'] is defined) or
+    when: ansible_facts['packages']['zimbra-core'] is defined
   delegate_to: "{{ acme_ssl_destserver }}"
   when:
-    - acme_reload_services
+    - acme_ssl_reload_services
     - deployed_cert.changed
