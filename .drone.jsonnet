@@ -57,13 +57,15 @@ local Converge(distro) = {
   {
     name: "Publish",
     kind: "pipeline",
+    clone:
+      disable: true,
     steps: [
       {
         name: "Ansible Galaxy",
         image: "quay.io/ansible/molecule",
         commands: [
           "ansible-galaxy login --github-token $$GITHUB_TOKEN",
-          "ansible-galaxy import Thulium-Drake ansible-role-vmware --role-name=acme_ssl",
+          "ansible-galaxy import Thulium-Drake ansible-role-acme_ssl --role-name=acme_ssl",
         ],
         environment:
           { GITHUB_TOKEN: { from_secret: "github_token" } },
