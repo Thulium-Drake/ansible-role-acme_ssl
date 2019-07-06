@@ -165,6 +165,12 @@
       /opt/zimbra/bin/zmcertmgr deploycrt comm
       sudo -u zimbra /opt/zimbra/bin/zmcontrol restart
     when: ansible_facts['packages']['zimbra-core'] is defined
+
+  - name: 'Restart slapd'
+    service:
+      name: 'slapd'
+      state: 'restarted'
+    when: ansible_facts['packages']['slapd'] is defined
   delegate_to: "{{ acme_ssl_destserver }}"
   when:
     - acme_ssl_reload_services
