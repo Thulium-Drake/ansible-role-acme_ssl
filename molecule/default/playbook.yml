@@ -10,7 +10,7 @@
       - { domain: 'http-validated.test.lab', challenge: 'http-01',  web_dir: '/var/www/html', server: '10.30.50.11' }
 
     acme_ssl_directory: 'https://pebble:14000/dir'
-    acme_ssl_ca_url: 'https://pebble:14000/root'
+    acme_ssl_ca_url: 'https://pebble:15000/roots/0'
     acme_ssl_directory_validate: false
     acme_ssl_reload_services: true
     acme_ssl_dns_wait: 1
