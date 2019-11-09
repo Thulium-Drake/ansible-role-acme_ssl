@@ -176,5 +176,5 @@
     when: ansible_facts['packages']['slapd'] is defined
   delegate_to: "{{ acme_ssl_destserver }}"
   when:
-    - acme_ssl_reload_services
+    - acme_ssl_reload_services | bool
     - deployed_cert.changed
