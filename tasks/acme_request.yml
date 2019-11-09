@@ -159,9 +159,11 @@
   - name: 'Deploy Zimbra certificate and restart'
     shell: |
       cd /opt/zimbra/ssl/zimbra/commercial
+      chattr -i commercial.crt commercial.key
       cat /etc/ssl/acme/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}_chain.cer /etc/ssl/acme/{{ acme_ssl_domain }}/ca.cer > commercial_ca.crt
-      ln -nfs  /etc/ssl/acme/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.cer commercial.crt
-      ln -nfs  /etc/ssl/acme/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.key commercial.key
+      cp /etc/ssl/acme/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.cer commercial.crt
+      cp /etc/ssl/acme/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.key commercial.key
+      chattr +i commercial.crt commercial.key
       /opt/zimbra/bin/zmcertmgr verifycrt comm
       /opt/zimbra/bin/zmcertmgr deploycrt comm commercial_ca.crt commercial.crt
       sudo -u zimbra /opt/zimbra/bin/zmcontrol restart

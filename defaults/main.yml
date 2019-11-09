@@ -15,6 +15,7 @@ acme_ssl_directory_validate: true                           # Check the certific
 
 # ACME CA certificate URL
 acme_ssl_ca_url: 'https://letsencrypt.org/certs/fakeleintermediatex1.pem'               # Staging
+#acme_ssl_ca_url: 'https://letsencrypt.org/certs/trustid-x3-root.pem.txt'               # DST Root CA
 #acme_ssl_ca_url: 'https://letsencrypt.org/certs/letsencryptauthorityx3.pem.txt'        # Production
 #acme_ssl_ca_url: 'https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem.txt'  # Production, cross-signed
 
