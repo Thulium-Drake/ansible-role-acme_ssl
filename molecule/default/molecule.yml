@@ -4,10 +4,10 @@ dependency:
   command: ansible-playbook ${MOLECULE_PROJECT_DIRECTORY}/molecule/default/dependency.yml -i localhost,
 driver:
   name: 'docker'
-lint:
-  name: 'yamllint'
-  options:
-    config-file: 'molecule/default/yamllint.yml'
+lint: |
+  set -e
+  yamllint -c molecule/default/yamllint.yml .
+  ansible-lint molecule/default/converge.yml
 platforms:
   - name: "acme-ssl-client"
     image: "geerlingguy/docker-${MOLECULE_DISTRO:-debian9}-ansible:latest"
@@ -38,9 +38,5 @@ platforms:
         ipv4_address: '10.30.50.10'
 provisioner:
   name: 'ansible'
-  lint:
-    name: 'ansible-lint'
 verifier:
   name: 'testinfra'
-  lint:
-    name: 'flake8'
