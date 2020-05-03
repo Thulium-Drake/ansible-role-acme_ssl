@@ -6,13 +6,21 @@
     path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}"
     state: 'directory'
 
-- name: "Check certificate validity - {{ certificate.domain }}"
-  openssl_certificate:
-    path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.cer"
-    provider: 'assertonly'
-    valid_in: "{{ (acme_ssl_validity_min * 24 * 3600)| int | abs }}"
-  register: 'acme_cert_validity'
-  ignore_errors: true
+- block:
+    - name: "Check certificate validity - {{ certificate.domain }}"
+      openssl_certificate_info:
+        path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.cer"
+        valid_at:
+          min_validity: "+{{ acme_ssl_validity_min }}d"
+          #min_validity: '+100000d'
+      register: 'ssl_cert_info'
+    - name: "Check certificate validity - {{ certificate.domain }}"
+      set_fact:
+        acme_cert_valid: "{{ ssl_cert_info.valid_at.min_validity }}"
+  rescue:
+    - name: "Check certificate validity - {{ certificate.domain }}"
+      set_fact:
+        acme_cert_valid: false
 
 - block:
   - name: "Clear old files - {{ certificate.domain }}"
@@ -113,7 +121,7 @@
       include_tasks:
         file: 'acme_{{ certificate.challenge | default(acme_ssl_default_challenge) }}_cleanup.yml'
     when: acme_ssl_challenge_data is changed
-  when: acme_cert_validity.failed
+  when: not acme_cert_valid
 
 - name: "Sync certificates to Ansible Master - {{ certificate.domain }}"
   fetch:
