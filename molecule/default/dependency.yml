@@ -17,5 +17,6 @@
         connected:
           - "{{ ansible_facts['hostname'] }}"
       when: ansible_facts['virtualization_type'] == 'docker'
+      ignore_errors: true # it errors out when already connected
   vars:
     ansible_connection: 'local'
