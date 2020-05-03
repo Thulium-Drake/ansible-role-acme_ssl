@@ -38,5 +38,3 @@ platforms:
         ipv4_address: '10.30.50.10'
 provisioner:
   name: 'ansible'
-verifier:
-  name: 'testinfra'

@@ -32,6 +32,8 @@ acme_ssl_dns_wait: 120                  # Time to wait in seconds for DNS update
 acme_ssl_reload_services: false         # Automatically try to reload supported services:
                                         # Nginx, Apache or Zimbra
 
+acme_ssl_local_ansible: true            # Set to false if the system making the ACME requests is not the Ansible
+                                        # controller
 # The certficates that are requested
 # domain: name of the certificate
 # challenge: dns-01 or http-01
@@ -42,3 +44,4 @@ acme_ssl_reload_services: false         # Automatically try to reload supported 
 acme_ssl_certificates:
   - { domain: 'site.example.com',  challenge: 'dns-01',  dns_zone: 'example.com',  server: '127.0.0.1' }
   - { domain: 'site2.example.com', type: 'RSA', challenge: 'http-01', web_dir: '/var/www/html', server: 'localhost' }
+  - { domain: 'site3.example.com', altname: 'DNS:service.example.com', challenge: 'http-01', web_dir: '/var/www/html', server: 'localhost' }

@@ -3,132 +3,152 @@
 #
 - name: 'Check certificate directory'
   file:
-    path: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}"
+    path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}"
     state: 'directory'
 
-- name: "Check certificate validity - {{ acme_ssl_domain }}"
+- name: "Check certificate validity - {{ certificate.domain }}"
   openssl_certificate:
-    path: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.cer"
+    path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.cer"
     provider: 'assertonly'
     valid_in: "{{ (acme_ssl_validity_min * 24 * 3600)| int | abs }}"
   register: 'acme_cert_validity'
   ignore_errors: true
 
 - block:
-  - name: "Clear old files - {{ acme_ssl_domain }}"
+  - name: "Clear old files - {{ certificate.domain }}"
     file:
       state: 'absent'
-      path: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ item }}"
+      path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item }}"
     loop:
-      - "{{ acme_ssl_domain }}.key"
-      - "{{ acme_ssl_domain }}.csr"
-      - "{{ acme_ssl_domain }}.cer"
-      - "{{ acme_ssl_domain }}_chain.cer"
-      - "{{ acme_ssl_domain }}_fullchain.cer"
+      - "{{ certificate.domain }}.key"
+      - "{{ certificate.domain }}.csr"
+      - "{{ certificate.domain }}.cer"
+      - "{{ certificate.domain }}_chain.cer"
+      - "{{ certificate.domain }}_fullchain.cer"
       - 'ca.cer'
 
-  - name: "Generating new EC SSL key - {{ acme_ssl_domain }}"
+  - name: "Generating new EC SSL key - {{ certificate.domain }}"
     openssl_privatekey:
-      path: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.key"
+      path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
       curve: "{{ acme_ssl_ecparam_curve }}"
       type: "{{ acme_ssl_type }}"
     when: acme_ssl_type == 'ECC'
 
-  - name: "Generating new SSL key - {{ acme_ssl_domain }}"
+  - name: "Generating new SSL key - {{ certificate.domain }}"
     openssl_privatekey:
-      path: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.key"
+      path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
       size: "{{ acme_ssl_rsa_bits }}"
       type: "{{ acme_ssl_type }}"
     when: acme_ssl_type == 'RSA'
 
-  - name: "Generating new CSR file - {{ acme_ssl_domain }}"
-    openssl_csr:
-      path: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.csr"
-      privatekey_path: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.key"
-      common_name: "{{ acme_ssl_domain }}"
+  - block:
+    - name: "Generating SAN list - {{ certificate.domain }}"
+      set_fact:
+        san_list: "[ '{{ certificate.domain }}' ] + {{ certificate.altname }}"
+    - name: "Adding SAN prefixes - {{ certificate.domain }}"
+      set_fact:
+        san_list: "{{ san_list | map('regex_replace', '^', 'DNS:') | list }}"
+    - debug:
+        msg: "{{ san_list }}"
+    - name: "Generating new CSR file with SAN - {{ certificate.domain }}"
+      openssl_csr:
+        path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.csr"
+        privatekey_path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
+        common_name: "{{ certificate.domain }}"
+        subject_alt_name: "{{ san_list }}"
+    when: certificate.altname is defined
 
-  - name: "Registering new ACME challenge - {{ acme_ssl_domain }}"
+  - name: "Generating new CSR file - {{ certificate.domain }}"
+    openssl_csr:
+      path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.csr"
+      privatekey_path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
+      common_name: "{{ certificate.domain }}"
+      subject_alt_name: "DNS:{{ certificate.domain }}"
+    when: certificate.altname is not defined
+
+  - name: "Registering new ACME challenge - {{ certificate.domain }}"
     acme_certificate:
       account_key_src: "{{ acme_ssl_account_key }}"
-      challenge: "{{ acme_ssl_challenge }}"
+      challenge: "{{ certificate.challenge | default(acme_ssl_default_challenge) }}"
       acme_directory: "{{ acme_ssl_directory }}"
       validate_certs: "{{ acme_ssl_directory_validate }}"
       acme_version: "{{ acme_ssl_directory_version }}"
       remaining_days: "{{ acme_ssl_validity_min }}"
       terms_agreed: "{{ acme_ssl_terms_agreed }}"
-      csr: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.csr"
-      cert: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.cer"
+      csr: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.csr"
+      cert: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.cer"
     register: 'acme_ssl_challenge_data'
 
   - block:
-    - name: "Processing challenge - {{ acme_ssl_domain }}"
+    - name: "Processing challenge - {{ certificate.domain }}"
       include_tasks:
-        file: 'acme_{{ acme_ssl_challenge }}_create.yml'
+        file: 'acme_{{ certificate.challenge | default(acme_ssl_default_challenge) }}_create.yml'
 
-    - name: "Validating and finishing request - {{ acme_ssl_domain }}"
+    - name: "Validating and finishing request - {{ certificate.domain }}"
       acme_certificate:
         account_key_src: "{{ acme_ssl_account_key }}"
-        challenge: "{{ acme_ssl_challenge }}"
+        challenge: "{{ certificate.challenge | default(acme_ssl_default_challenge) }}"
         acme_directory: "{{ acme_ssl_directory }}"
         validate_certs: "{{ acme_ssl_directory_validate }}"
         acme_version: "{{ acme_ssl_directory_version }}"
         remaining_days: "{{ acme_ssl_validity_min }}"
         terms_agreed: "{{ acme_ssl_terms_agreed }}"
-        csr: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.csr"
-        cert: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.cer"
-        chain: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}_chain.cer"
-        fullchain: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}_fullchain.cer"
+        csr: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.csr"
+        cert: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.cer"
+        chain: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}_chain.cer"
+        fullchain: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}_fullchain.cer"
         data: "{{ acme_ssl_challenge_data }}"
       register: 'cert_validated'
       retries: 6
       delay: 60
       until: not cert_validated.failed
 
-    - name: "Downloading Issuing CA certificate - {{ acme_ssl_domain }}"
+    - name: "Downloading Issuing CA certificate - {{ certificate.domain }}"
       uri:
         url: "{{ acme_ssl_ca_url }}"
         force: true
         validate_certs: "{{ acme_ssl_directory_validate }}"
-        dest: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/ca.cer"
+        dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/ca.cer"
 
     always:
-    - name: "Cleaning up challenge - {{ acme_ssl_domain }}"
+    - name: "Cleaning up challenge - {{ certificate.domain }}"
       include_tasks:
-        file: 'acme_{{ acme_ssl_challenge }}_cleanup.yml'
+        file: 'acme_{{ certificate.challenge | default(acme_ssl_default_challenge) }}_cleanup.yml'
     when: acme_ssl_challenge_data is changed
   when: acme_cert_validity.failed
 
-- name: "Sync certificates to Ansible Master - {{ acme_ssl_domain }}"
+- name: "Sync certificates to Ansible Master - {{ certificate.domain }}"
   fetch:
-    src: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ item }}"
-    dest: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ item }}"
+    src: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item }}"
+    dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item }}"
     fail_on_missing: false
     flat: true
   loop:
-    - "{{ acme_ssl_domain }}.key"
-    - "{{ acme_ssl_domain }}.csr"
-    - "{{ acme_ssl_domain }}.cer"
-    - "{{ acme_ssl_domain }}_chain.cer"
-    - "{{ acme_ssl_domain }}_fullchain.cer"
+    - "{{ certificate.domain }}.key"
+    - "{{ certificate.domain }}.csr"
+    - "{{ certificate.domain }}.cer"
+    - "{{ certificate.domain }}_chain.cer"
+    - "{{ certificate.domain }}_fullchain.cer"
     - 'ca.cer'
+  when: not acme_ssl_local_ansible
 
-- name: "Create destdir on target - {{ acme_ssl_domain }}"
+- name: "Create destdir on target - {{ certificate.domain }}"
   file:
-    path: "{{ acme_ssl_destdir }}/{{ acme_ssl_domain }}"
+    path: "{{ acme_ssl_destdir }}/{{ certificate.domain }}"
     state: 'directory'
-  delegate_to: "{{ acme_ssl_destserver }}"
+  delegate_to: "{{ certificate.server }}"
 
-- name: "Deploy certificates to target - {{ acme_ssl_domain }}"
+- name: "Deploy certificates to target - {{ certificate.domain }}"
   copy:
-    src: "{{ acme_ssl_basedir }}/{{ acme_ssl_domain }}/{{ item }}"
-    dest: "{{ acme_ssl_destdir }}/{{ acme_ssl_domain }}/{{ item }}"
-  delegate_to: "{{ acme_ssl_destserver }}"
+    src: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item }}"
+    dest: "{{ acme_ssl_destdir }}/{{ certificate.domain }}/{{ item }}"
+  delegate_to: "{{ certificate.server }}"
   loop:
-    - "{{ acme_ssl_domain }}.key"
-    - "{{ acme_ssl_domain }}.csr"
-    - "{{ acme_ssl_domain }}.cer"
-    - "{{ acme_ssl_domain }}_chain.cer"
-    - "{{ acme_ssl_domain }}_fullchain.cer"
+    - "{{ certificate.domain }}.key"
+    - "{{ certificate.domain }}.csr"
+    - "{{ certificate.domain }}.cer"
+    - "{{ certificate.domain }}_chain.cer"
+    - "{{ certificate.domain }}_fullchain.cer"
     - 'ca.cer'
   register: 'deployed_cert'
 
@@ -160,9 +180,9 @@
     shell: |
       cd /opt/zimbra/ssl/zimbra/commercial
       chattr -i commercial.crt commercial.key
-      cat /etc/ssl/acme/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}_chain.cer /etc/ssl/acme/{{ acme_ssl_domain }}/ca.cer > commercial_ca.crt
-      cp /etc/ssl/acme/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.cer commercial.crt
-      cp /etc/ssl/acme/{{ acme_ssl_domain }}/{{ acme_ssl_domain }}.key commercial.key
+      cat /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}_chain.cer /etc/ssl/acme/{{ certificate.domain }}/ca.cer > commercial_ca.crt
+      cp /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.cer commercial.crt
+      cp /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.key commercial.key
       chattr +i commercial.crt commercial.key
       /opt/zimbra/bin/zmcertmgr verifycrt comm
       /opt/zimbra/bin/zmcertmgr deploycrt comm commercial_ca.crt commercial.crt
@@ -174,7 +194,7 @@
       name: 'slapd'
       state: 'restarted'
     when: ansible_facts['packages']['slapd'] is defined
-  delegate_to: "{{ acme_ssl_destserver }}"
+  delegate_to: "{{ certificate.server }}"
   when:
     - acme_ssl_reload_services | bool
     - deployed_cert.changed

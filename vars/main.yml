@@ -1,7 +1,3 @@
 ---
-acme_ssl_domain: "{{ certificate.domain }}"
-acme_ssl_zone: "{{ certificate.dns_zone }}"
-acme_ssl_challenge_location: "{{ certificate.web_dir }}"
-acme_ssl_challenge: "{{ certificate.challenge | default(acme_ssl_default_challenge) }}"
+# Map optional non-set defaults to variables used in tasks
 acme_ssl_type: "{{ certificate.type | default(acme_ssl_default_type) }}"
-acme_ssl_destserver: "{{ certificate.server }}"

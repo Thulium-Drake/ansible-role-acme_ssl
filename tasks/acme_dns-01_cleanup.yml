@@ -1,12 +1,27 @@
 ---
 # All tasks required for the cleanup of the DNS-01 challenge validation
 #
-- name: Remove challenge DNS records - {{ acme_ssl_domain }}
+- name: "Remove challenge DNS records - {{ certificate.domain }}"
   nsupdate:
     server: "{{ acme_ssl_nameserver }}"
-    ttl: "60"
-    type: "TXT"
-    zone: "{{ acme_ssl_zone }}"
-    record:  "{{ acme_ssl_challenge_data['challenge_data'][acme_ssl_domain]['dns-01']['resource'] }}.{{ acme_ssl_domain }}."
-    value: "{{  acme_ssl_challenge_data['challenge_data'][acme_ssl_domain]['dns-01']['resource_value'] }}"
-    state: absent
+    ttl: '60'
+    type: 'TXT'
+    zone: "{{ certificate.dns_zone | default(certificate.domain.split('.')[-2:]) }}"
+    record:  "{{ acme_ssl_challenge_data['challenge_data'][certificate.domain]['dns-01']['resource'] }}.{{ certificate.domain }}."
+    value: "{{  acme_ssl_challenge_data['challenge_data'][certificate.domain]['dns-01']['resource_value'] }}"
+    state: 'absent'
+
+- name: "Remove additional challenge DNS records - {{ certificate.domain }}"
+  nsupdate:
+    server: "{{ acme_ssl_nameserver }}"
+    ttl: '60'
+    type: 'TXT'
+    zone: "{{ certificate.dns_zone | default(certificate.domain.split('.')[-2:]) }}"
+    record:  "{{ acme_ssl_challenge_data['challenge_data'][altname_record]['dns-01']['resource'] }}.{{ altname_record }}."
+    value: "{{  acme_ssl_challenge_data['challenge_data'][altname_record]['dns-01']['resource_value'] }}"
+    state: 'absent'
+  loop: "{{ certificate.altname }}"
+  loop_control:
+    loop_var: 'altname_record'
+  when: certificate.altname is defined
+

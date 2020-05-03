@@ -109,5 +109,7 @@
       loop:
         - 'dns-validated.test.lab.'
         - 'http-validated.test.lab.'
+        - 'altname-validated.test.lab.'
+        - 'altname.test.lab.'
       loop_control:
         loop_var: 'record'
