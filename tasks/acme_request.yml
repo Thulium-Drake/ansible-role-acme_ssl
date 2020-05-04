@@ -12,7 +12,6 @@
         path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.cer"
         valid_at:
           min_validity: "+{{ acme_ssl_validity_min }}d"
-          #min_validity: '+100000d'
       register: 'ssl_cert_info'
     - name: "Check certificate validity - {{ certificate.domain }}"
       set_fact:
