@@ -198,16 +198,21 @@
     when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['pve-manager'] is defined
 
   - name: 'Deploy Zimbra certificate and restart'
-    shell: |
-      cd /opt/zimbra/ssl/zimbra/commercial
-      chattr -i commercial.crt commercial.key
-      cat /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}_chain.cer /etc/ssl/acme/{{ certificate.domain }}/ca.cer > commercial_ca.crt
-      cp /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.cer commercial.crt
-      cp /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.key commercial.key
-      chattr +i commercial.crt commercial.key
-      /opt/zimbra/bin/zmcertmgr verifycrt comm
-      sudo -u zimbra /opt/zimbra/bin/zmcertmgr deploycrt comm commercial_ca.crt commercial.crt
-      sudo -u zimbra /opt/zimbra/bin/zmcontrol restart
+    block:
+      - name: 'Deploying Zimbra certificate'
+        shell: |
+          cd /opt/zimbra/ssl/zimbra/commercial
+          chattr -i commercial.crt commercial.key
+          cat /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}_chain.cer /etc/ssl/acme/{{ certificate.domain }}/ca.cer > commercial_ca.crt
+          cp /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.cer commercial.crt
+          cp /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.key commercial.key
+          chattr +i commercial.crt commercial.key
+          /opt/zimbra/bin/zmcertmgr verifycrt comm
+          /opt/zimbra/bin/zmcertmgr deploycrt comm
+      - name: 'Restarting Zimbra'
+        service:
+          name: 'zimbra'
+          state: 'restarted'
     when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['zimbra-core'] is defined
 
   - name: 'Restart slapd'
