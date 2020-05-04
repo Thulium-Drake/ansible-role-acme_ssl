@@ -3,4 +3,8 @@ dns_packages:
   - 'python-dns'
   - 'bind-utils'
 
+ssl_packages:
+  - 'openssl'
+  - 'python-crypto'
+
 apache_service_name: 'httpd'

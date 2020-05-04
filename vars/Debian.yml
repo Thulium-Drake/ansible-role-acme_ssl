@@ -1,6 +1,11 @@
 ---
+ssl_packages:
+  - 'openssl'
+  - 'python3-cryptography'
+
 dns_packages:
   - 'python-dnspython'
+  - 'python3-dnspython'
   - 'dnsutils'
 
 apache_service_name: 'apache2'

@@ -1,12 +1,12 @@
 ---
 # What: Generate and request certificates via ACME
 #
-- name: 'Include OS-family specific vars'
+- name: 'Include distribution specific vars'
   include_vars:
-    file: "{{ ansible_os_family }}.yml"
+    file: "{{ ansible_facts['os_family'] }}.yml"
 - name: 'Install required packages'
   package:
-    name: 'openssl'
+    name: "{{ ssl_packages }}"
     state: 'present'
 
 - name: 'Check ACME account key'

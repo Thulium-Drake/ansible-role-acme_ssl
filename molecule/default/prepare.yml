@@ -35,15 +35,34 @@
         mode: 0644
         unsafe_writes: true
 
+- name: 'Update package cache'
+  hosts: 'acme-ssl-client'
+  gather_facts: true
+  tasks:
+    - name: 'Refresh APT'
+      apt:
+        update_cache: true
+      when: ansible_facts['os_family'] == 'Debian'
+    - name: 'Refresh YUM'
+      yum:
+        update_cache: true
+      when: ansible_facts['os_family'] == 'RedHat'
+
 - name: 'Prepare helper node'
   gather_facts: false
   hosts: 'acme-ssl-helper'
   tasks:
+    - name: 'Symlink python'
+      file:
+        path: '/usr/bin/python'
+        state: 'link'
+        src: '/usr/bin/python3'
     - name: 'Install tools'
       apt:
         name:
           - 'pdns-backend-sqlite3'
-          - 'python-dnspython'
+          - 'sqlite3'
+          - 'python3-dnspython'
           - 'dnsutils'
           - 'nginx-light'
           - 'openssh-server'
@@ -58,6 +77,27 @@
         mode: 0644
         owner: 'root'
         group: 'root'
+    - name: 'Disable BIND backend'
+      file:
+        path: '/etc/powerdns/pdns.d/bind.conf'
+        state: 'absent'
+    - name: 'Configure SQLite backend'
+      copy:
+        dest: '/etc/powerdns/pdns.d/sqlite.conf'
+        content: |
+          local-address=0.0.0.0
+          launch=gsqlite3
+          gsqlite3-database=/var/lib/powerdns/zones.slave.d/powerdns.sqlite3
+          master
+          daemon
+          guardian
+    - name: 'Setup PowerDNS DB'
+      shell: sqlite3 /var/lib/powerdns/zones.slave.d/powerdns.sqlite3 < /usr/share/doc/pdns-backend-sqlite3/schema.sqlite3.sql
+    - name: 'Correct permissions on DB'
+      file:
+        path: '/var/lib/powerdns/zones.slave.d/powerdns.sqlite3'
+        owner: 'pdns'
+        group: 'pdns'
     - name: 'Set root authorized_key'
       authorized_key:
         user: 'root'
