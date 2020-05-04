@@ -168,18 +168,34 @@
       name: "{{ apache_service_name }}"
       state: 'reloaded'
     when: >
-      (ansible_facts['packages']['httpd'] is defined) or
-      (ansible_facts['packages']['apache2'] is defined)
+      (acme_ssl_destserver_pkgs['ansible_facts']['packages']['httpd'] is defined) or
+      (acme_ssl_destserver_pkgs['ansible_facts']['packages']['apache2'] is defined)
 
   - name: 'Reload nginx'
     service:
       name: 'nginx'
       state: 'reloaded'
     when: >
-      (ansible_facts['packages']['nginx'] is defined) or
-      (ansible_facts['packages']['nginx-light'] is defined) or
-      (ansible_facts['packages']['nginx-full'] is defined) or
-      (ansible_facts['packages']['nginx-extras'] is defined)
+      (acme_ssl_destserver_pkgs['ansible_facts']['packages']['nginx'] is defined) or
+      (acme_ssl_destserver_pkgs['ansible_facts']['packages']['nginx-light'] is defined) or
+      (acme_ssl_destserver_pkgs['ansible_facts']['packages']['nginx-full'] is defined) or
+      (acme_ssl_destserver_pkgs['ansible_facts']['packages']['nginx-extras'] is defined)
+
+  - name: 'Deploy Proxmox certificate and restart pveproxy'
+    block:
+    - name: 'Copy certificate files'
+      copy:
+        src: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item.src }}"
+        dest: "/etc/pve/local/{{ item.dest }}"
+      delegate_to: "{{ certificate.server }}"
+      loop:
+        - { src: "{{ certificate.domain }}.key", dest: 'pve-ssl.key' }
+        - { src: "{{ certificate.domain }}_fullchain.cer", dest: 'pve-ssl.pem' }
+    - name: 'Restart PVEProxy'
+      service:
+        name: 'pveproxy'
+        state: 'restarted'
+    when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['pve-manager'] is defined
 
   - name: 'Deploy Zimbra certificate and restart'
     shell: |
@@ -190,15 +206,15 @@
       cp /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.key commercial.key
       chattr +i commercial.crt commercial.key
       /opt/zimbra/bin/zmcertmgr verifycrt comm
-      /opt/zimbra/bin/zmcertmgr deploycrt comm commercial_ca.crt commercial.crt
+      sudo -u zimbra /opt/zimbra/bin/zmcertmgr deploycrt comm commercial_ca.crt commercial.crt
       sudo -u zimbra /opt/zimbra/bin/zmcontrol restart
-    when: ansible_facts['packages']['zimbra-core'] is defined
+    when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['zimbra-core'] is defined
 
   - name: 'Restart slapd'
     service:
       name: 'slapd'
       state: 'restarted'
-    when: ansible_facts['packages']['slapd'] is defined
+    when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['slapd'] is defined
   delegate_to: "{{ certificate.server }}"
   when:
     - acme_ssl_reload_services | bool
