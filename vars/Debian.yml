@@ -4,7 +4,7 @@ ssl_packages:
   - 'python3-cryptography'
 
 dns_packages:
-  - 'python3-dnspython'
   - 'dnsutils'
+  - 'python3-dnspython'
 
 apache_service_name: 'apache2'
