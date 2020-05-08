@@ -1,11 +1,9 @@
 ---
 ssl_packages:
   - 'openssl'
-  - 'python-cryptography'
   - 'python3-cryptography'
 
 dns_packages:
-  - 'python-dnspython'
   - 'python3-dnspython'
   - 'dnsutils'
 
