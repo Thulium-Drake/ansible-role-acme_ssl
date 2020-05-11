@@ -9,6 +9,8 @@
         state: 'present'
         ipam_config:
           - subnet: '10.30.50.0/24'
+        labels:
+          owner: 'molecule'
 
     - name: 'Connect Molecule docker to ACMEnet'
       docker_network:
