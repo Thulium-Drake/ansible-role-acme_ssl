@@ -201,14 +201,13 @@
     block:
       - name: 'Deploying Zimbra certificate'
         shell: |
+          cd /etc/ssl/acme/{{ certificate.domain }}
+          cat {{ certificate.domain }}_chain.cer ca.cer > fullchain_ca.crt
           cd /opt/zimbra/ssl/zimbra/commercial
-          chattr -i commercial.crt commercial.key
-          cat /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}_chain.cer /etc/ssl/acme/{{ certificate.domain }}/ca.cer > commercial_ca.crt
           cp /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.cer commercial.crt
           cp /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.key commercial.key
-          chattr +i commercial.crt commercial.key
-          /opt/zimbra/bin/zmcertmgr verifycrt comm
-          /opt/zimbra/bin/zmcertmgr deploycrt comm
+          sudo -u zimbra /opt/zimbra/bin/zmcertmgr verifycrt comm
+          sudo -u zimbra /opt/zimbra/bin/zmcertmgr deploycrt comm /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.cer
       - name: 'Restarting Zimbra'
         service:
           name: 'zimbra'
