@@ -204,10 +204,9 @@
           cd /etc/ssl/acme/{{ certificate.domain }}
           cat {{ certificate.domain }}_chain.cer ca.cer > fullchain_ca.crt
           cd /opt/zimbra/ssl/zimbra/commercial
-          cp /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.cer commercial.crt
           cp /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.key commercial.key
           sudo -u zimbra /opt/zimbra/bin/zmcertmgr verifycrt comm
-          sudo -u zimbra /opt/zimbra/bin/zmcertmgr deploycrt comm /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.cer
+          sudo -u zimbra /opt/zimbra/bin/zmcertmgr deploycrt comm /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.cer /etc/ssl/acme/{{ certificate.domain }}/fullchain_ca.crt
       - name: 'Restarting Zimbra'
         service:
           name: 'zimbra'
