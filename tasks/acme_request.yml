@@ -115,6 +115,13 @@
         validate_certs: "{{ acme_ssl_directory_validate }}"
         dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/ca.cer"
 
+    - name: "Downloading Issuing CA OCSP certificate - {{ certificate.domain }}"
+      uri:
+        url: "{{ acme_ssl_ocsp_url }}"
+        force: true
+        validate_certs: "{{ acme_ssl_directory_validate }}"
+        dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/ocsp.cer"
+
     always:
     - name: "Cleaning up challenge - {{ certificate.domain }}"
       include_tasks:
@@ -155,6 +162,7 @@
     - "{{ certificate.domain }}_chain.cer"
     - "{{ certificate.domain }}_fullchain.cer"
     - 'ca.cer'
+    - 'ocsp.cer'
   register: 'deployed_cert'
 
 - block:

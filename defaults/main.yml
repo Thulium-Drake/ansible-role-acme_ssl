@@ -19,6 +19,9 @@ acme_ssl_ca_url: 'https://letsencrypt.org/certs/fakeleintermediatex1.pem'       
 #acme_ssl_ca_url: 'https://letsencrypt.org/certs/letsencryptauthorityx3.pem.txt'        # Production
 #acme_ssl_ca_url: 'https://letsencrypt.org/certs/lets-encrypt-x3-cross-signed.pem.txt'  # Production, cross-signed
 
+# ACME OCSP certificate URL
+acme_ssl_ocsp_url: 'https://letsencrypt.org/certs/isrg-root-ocsp-x1.pem.txt'
+
 acme_ssl_rsa_bits: 4096                 # How long to make RSA keys
 acme_ssl_ecparam_curve: 'secp384r1'     # Which elliptic curve to use for the private key
 
