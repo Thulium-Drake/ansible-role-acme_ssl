@@ -142,6 +142,7 @@
     - "{{ certificate.domain }}_chain.cer"
     - "{{ certificate.domain }}_fullchain.cer"
     - 'ca.cer'
+    - 'ocsp.cer'
   when: not acme_ssl_local_ansible
 
 - name: "Create destdir on target - {{ certificate.domain }}"
