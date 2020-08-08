@@ -112,6 +112,9 @@
       uri:
         url: "{{ acme_ssl_ca_url }}"
         force: true
+        status_code:
+          - 200
+          - 304
         validate_certs: "{{ acme_ssl_directory_validate }}"
         dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/ca.cer"
 
@@ -119,6 +122,9 @@
       uri:
         url: "{{ acme_ssl_ocsp_url }}"
         force: true
+        status_code:
+          - 200
+          - 304
         validate_certs: "{{ acme_ssl_directory_validate }}"
         dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/ocsp.cer"
 
