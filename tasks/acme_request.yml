@@ -5,10 +5,13 @@
   file:
     path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}"
     state: 'directory'
+    mode: 0770
+    owner: "{{ lookup('env', 'USER') }}"
+    group: "{{ lookup('env', 'USER') }}"
 
 - block:
     - name: "Check certificate validity - {{ certificate.domain }}"
-      openssl_certificate_info:
+      community.crypto.x509_certificate_info:
         path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.cer"
         valid_at:
           min_validity: "+{{ acme_ssl_validity_min }}d"
@@ -35,17 +38,23 @@
       - 'ca.cer'
 
   - name: "Generating new EC SSL key - {{ certificate.domain }}"
-    openssl_privatekey:
+    community.crypto.openssl_privatekey:
       path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
       curve: "{{ acme_ssl_ecparam_curve }}"
       type: "{{ acme_ssl_type }}"
+      mode: 0660
+      owner: "{{ lookup('env', 'USER') }}"
+      group: "{{ lookup('env', 'USER') }}"
     when: acme_ssl_type == 'ECC'
 
   - name: "Generating new SSL key - {{ certificate.domain }}"
-    openssl_privatekey:
+    community.crypto.openssl_privatekey:
       path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
       size: "{{ acme_ssl_rsa_bits }}"
       type: "{{ acme_ssl_type }}"
+      mode: 0660
+      owner: "{{ lookup('env', 'USER') }}"
+      group: "{{ lookup('env', 'USER') }}"
     when: acme_ssl_type == 'RSA'
 
   - block:
@@ -56,23 +65,29 @@
       set_fact:
         san_list: "{{ san_list | map('regex_replace', '^', 'DNS:') | list }}"
     - name: "Generating new CSR file with SAN - {{ certificate.domain }}"
-      openssl_csr:
+      community.crypto.openssl_csr:
         path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.csr"
         privatekey_path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
         common_name: "{{ certificate.domain }}"
         subject_alt_name: "{{ san_list }}"
+        mode: 0660
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "{{ lookup('env', 'USER') }}"
     when: certificate.altname is defined
 
   - name: "Generating new CSR file - {{ certificate.domain }}"
-    openssl_csr:
+    community.crypto.openssl_csr:
       path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.csr"
       privatekey_path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
       common_name: "{{ certificate.domain }}"
       subject_alt_name: "DNS:{{ certificate.domain }}"
+      mode: 0660
+      owner: "{{ lookup('env', 'USER') }}"
+      group: "{{ lookup('env', 'USER') }}"
     when: certificate.altname is not defined
 
   - name: "Registering new ACME challenge - {{ certificate.domain }}"
-    acme_certificate:
+    community.crypto.acme_certificate:
       account_key_src: "{{ acme_ssl_account_key }}"
       challenge: "{{ certificate.challenge | default(acme_ssl_default_challenge) }}"
       acme_directory: "{{ acme_ssl_directory }}"
@@ -90,7 +105,7 @@
         file: 'acme_{{ certificate.challenge | default(acme_ssl_default_challenge) }}_create.yml'
 
     - name: "Validating and finishing request - {{ certificate.domain }}"
-      acme_certificate:
+      community.crypto.acme_certificate:
         account_key_src: "{{ acme_ssl_account_key }}"
         challenge: "{{ certificate.challenge | default(acme_ssl_default_challenge) }}"
         acme_directory: "{{ acme_ssl_directory }}"
@@ -117,6 +132,9 @@
           - 304
         validate_certs: "{{ acme_ssl_directory_validate }}"
         dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/ca.cer"
+        mode: 0660
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "{{ lookup('env', 'USER') }}"
 
     - name: "Downloading Issuing CA OCSP certificate - {{ certificate.domain }}"
       uri:
@@ -127,6 +145,9 @@
           - 304
         validate_certs: "{{ acme_ssl_directory_validate }}"
         dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/ocsp.cer"
+        mode: 0660
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "{{ lookup('env', 'USER') }}"
 
     always:
     - name: "Cleaning up challenge - {{ certificate.domain }}"
@@ -157,10 +178,19 @@
     state: 'directory'
   delegate_to: "{{ certificate.server }}"
 
+- name: "Ensure ssl-cert group on target - {{ certificate.domain }}"
+  group:
+    name: 'ssl-cert'
+    state: 'present'
+  delegate_to: "{{ certificate.server }}"
+
 - name: "Deploy certificates to target - {{ certificate.domain }}"
   copy:
     src: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item }}"
     dest: "{{ acme_ssl_destdir }}/{{ certificate.domain }}/{{ item }}"
+    mode: 0644
+    owner: 'root'
+    group: 'ssl-cert'
   delegate_to: "{{ certificate.server }}"
   loop:
     - "{{ certificate.domain }}.key"

@@ -4,7 +4,7 @@
   gather_facts: true
   tasks:
     - name: 'Create ACMEnet'
-      docker_network:
+      community.general.docker_network:
         name: 'acmenet'
         state: 'present'
         ipam_config:
@@ -13,7 +13,7 @@
           owner: 'molecule'
 
     - name: 'Connect Molecule docker to ACMEnet'
-      docker_network:
+      community.general.docker_network:
         name: 'acmenet'
         appends: true
         connected:

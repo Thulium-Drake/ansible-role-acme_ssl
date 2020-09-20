@@ -9,6 +9,9 @@ The default (and tested!) setup is using Pebble (https://github.com/letsencrypt/
 accordingly, it should also work with any other ACME-compliant server.
 
 # Requirements
+Ansible collection requirements:
+* community.general
+* community.crypto
 The succesful execution of this role requires the following on the Ansible Control Host:
 
 * Access to a DNS authoratative server for the DNS domain you wish you supply with certificates
@@ -32,4 +35,4 @@ After fulfilling the requirements above this role can be used as follows:
 
 After this role has run, it will have placed all requested certificates on the servers where you want to have them.
 
-Keep in mind: This role does *NOT* reconfigure software to actually use those certs!
+Keep in mind: This role does *NOT* reconfigure software to actually use those certs! It will create a group on your system 'ssl-cert' with access permissions to the certificate files.

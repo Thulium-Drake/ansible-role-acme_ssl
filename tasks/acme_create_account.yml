@@ -7,13 +7,13 @@
     state: 'directory'
 
 - name: 'Generating new EC SSL key - ACME account'
-  openssl_privatekey:
+  community.crypto.openssl_privatekey:
     path: "{{ acme_ssl_account_key }}"
     curve: "{{ acme_ssl_ecparam_curve }}"
     type: 'ECC'
 
 - name: 'Create ACME account'
-  acme_account:
+  community.crypto.acme_account:
     account_key_src: "{{ acme_ssl_account_key }}"
     state: 'present'
     acme_directory: "{{ acme_ssl_directory }}"

@@ -7,7 +7,7 @@
     state: 'present'
 
 - name: "Register challenge DNS records - {{ certificate.domain }}"
-  nsupdate:
+  community.general.nsupdate:
     server: "{{ acme_ssl_nameserver }}"
     ttl: "60"
     type: "TXT"
@@ -21,7 +21,7 @@
   until: not dns_registered.failed
 
 - name: "Register additional challenge DNS records - {{ certificate.domain }}"
-  nsupdate:
+  community.general.nsupdate:
     server: "{{ acme_ssl_nameserver }}"
     ttl: "60"
     type: "TXT"

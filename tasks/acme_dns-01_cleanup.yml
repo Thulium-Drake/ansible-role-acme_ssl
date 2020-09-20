@@ -2,7 +2,7 @@
 # All tasks required for the cleanup of the DNS-01 challenge validation
 #
 - name: "Remove challenge DNS records - {{ certificate.domain }}"
-  nsupdate:
+  community.general.nsupdate:
     server: "{{ acme_ssl_nameserver }}"
     ttl: '60'
     type: 'TXT'
@@ -12,7 +12,7 @@
     state: 'absent'
 
 - name: "Remove additional challenge DNS records - {{ certificate.domain }}"
-  nsupdate:
+  community.general.nsupdate:
     server: "{{ acme_ssl_nameserver }}"
     ttl: '60'
     type: 'TXT'

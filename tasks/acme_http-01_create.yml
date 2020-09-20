@@ -10,4 +10,5 @@
   copy:
     dest: "{{ certificate.web_dir }}/{{ acme_ssl_challenge_data['challenge_data'][certificate.domain]['http-01']['resource'] }}"
     content: "{{  acme_ssl_challenge_data['challenge_data'][certificate.domain]['http-01']['resource_value'] }}"
+    mode: 0644
   delegate_to: "{{ acme_ssl_webserver }}"
