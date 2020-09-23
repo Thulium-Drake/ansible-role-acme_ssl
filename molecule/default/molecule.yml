@@ -2,8 +2,8 @@
 dependency:
   name: 'shell'
   command: |
-    ansible-galaxy collection install community.general
-    ansible-galaxy collection install community.crypto
+    ansible-galaxy collection install community.general;
+    ansible-galaxy collection install community.crypto;
     ansible-playbook ${MOLECULE_PROJECT_DIRECTORY}/molecule/default/dependency.yml -i localhost,
 driver:
   name: 'docker'
