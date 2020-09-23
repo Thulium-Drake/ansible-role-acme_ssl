@@ -3,6 +3,10 @@
   hosts: 'localhost'
   gather_facts: true
   tasks:
+    - name: 'Install Ansible collections'
+      shell: |
+        ansible-galaxy collection install community.general
+        ansible-galaxy collection install community.crypto
     - name: 'Create ACMEnet'
       community.general.docker_network:
         name: 'acmenet'
