@@ -1,8 +1,8 @@
 ---
 dependency:
-  name: 'shell'
-  command:
-    ansible-playbook ${MOLECULE_PROJECT_DIRECTORY}/molecule/default/dependency.yml -i localhost,
+  name: 'galaxy'
+  options:
+    requirements-file: 'requirements.yml'
 driver:
   name: 'docker'
 lint: |
@@ -17,6 +17,10 @@ platforms:
     volumes:
       - '/sys/fs/cgroup:/sys/fs/cgroup:ro'
     privileged: true
+    docker_networks:
+      - name: 'acmenet'
+        ipam_config:
+          - subnet: "10.30.50.0/16"
     networks:
       - name: "acmenet"
         ipv4_address: '10.30.50.12'
