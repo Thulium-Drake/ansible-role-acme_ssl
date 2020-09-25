@@ -1,13 +1,23 @@
 ---
 # What: Generate and request certificates via ACME
 #
+- name: 'Set certificate owner'
+  block:
+    - name: 'Look up user running Ansible'
+      set_fact:
+        acme_ssl_owner: "{{ lookup('env', 'USER') }}"
+  rescue:
+    - name: 'Set owner to root'
+      set_fact:
+        acme_ssl_owner: 'root'
+
 - name: 'Check certificate directory'
   file:
     path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}"
     state: 'directory'
     mode: 0770
-    owner: "{{ lookup('env', 'USER') }}"
-    group: "{{ lookup('env', 'USER') }}"
+    owner: "{{ acme_ssl_owner }}"
+    group: "{{ acme_ssl_owner }}"
 
 - block:
     - name: "Check certificate validity - {{ certificate.domain }}"
@@ -43,8 +53,8 @@
       curve: "{{ acme_ssl_ecparam_curve }}"
       type: "{{ acme_ssl_type }}"
       mode: 0660
-      owner: "{{ lookup('env', 'USER') }}"
-      group: "{{ lookup('env', 'USER') }}"
+      owner: "{{ acme_ssl_owner }}"
+      group: "{{ acme_ssl_owner }}"
     when: acme_ssl_type == 'ECC'
 
   - name: "Generating new SSL key - {{ certificate.domain }}"
@@ -53,8 +63,8 @@
       size: "{{ acme_ssl_rsa_bits }}"
       type: "{{ acme_ssl_type }}"
       mode: 0660
-      owner: "{{ lookup('env', 'USER') }}"
-      group: "{{ lookup('env', 'USER') }}"
+      owner: "{{ acme_ssl_owner }}"
+      group: "{{ acme_ssl_owner }}"
     when: acme_ssl_type == 'RSA'
 
   - block:
@@ -71,8 +81,8 @@
         common_name: "{{ certificate.domain }}"
         subject_alt_name: "{{ san_list }}"
         mode: 0660
-        owner: "{{ lookup('env', 'USER') }}"
-        group: "{{ lookup('env', 'USER') }}"
+        owner: "{{ acme_ssl_owner }}"
+        group: "{{ acme_ssl_owner }}"
     when: certificate.altname is defined
 
   - name: "Generating new CSR file - {{ certificate.domain }}"
@@ -82,8 +92,8 @@
       common_name: "{{ certificate.domain }}"
       subject_alt_name: "DNS:{{ certificate.domain }}"
       mode: 0660
-      owner: "{{ lookup('env', 'USER') }}"
-      group: "{{ lookup('env', 'USER') }}"
+      owner: "{{ acme_ssl_owner }}"
+      group: "{{ acme_ssl_owner }}"
     when: certificate.altname is not defined
 
   - name: "Registering new ACME challenge - {{ certificate.domain }}"
@@ -133,8 +143,8 @@
         validate_certs: "{{ acme_ssl_directory_validate }}"
         dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/ca.cer"
         mode: 0660
-        owner: "{{ lookup('env', 'USER') }}"
-        group: "{{ lookup('env', 'USER') }}"
+        owner: "{{ acme_ssl_owner }}"
+        group: "{{ acme_ssl_owner }}"
 
     - name: "Downloading Issuing CA OCSP certificate - {{ certificate.domain }}"
       uri:
@@ -146,8 +156,8 @@
         validate_certs: "{{ acme_ssl_directory_validate }}"
         dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/ocsp.cer"
         mode: 0660
-        owner: "{{ lookup('env', 'USER') }}"
-        group: "{{ lookup('env', 'USER') }}"
+        owner: "{{ acme_ssl_owner }}"
+        group: "{{ acme_ssl_owner }}"
 
     always:
     - name: "Cleaning up challenge - {{ certificate.domain }}"
