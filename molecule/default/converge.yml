@@ -6,6 +6,7 @@
         name: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
   vars:
     ansible_python_interpreter: '/usr/bin/python3'
+    acme_ssl_owner: 'root'
     acme_ssl_certificates:
       - { domain: 'altname.test.lab', altname: [ 'altname-validated.test.lab', ], dns_zone: 'test.lab', server: '10.30.50.11' }
       - { domain: 'dns-validated.test.lab', altname: [ 'dns.test.lab' ], type: 'RSA', challenge: 'dns-01',   dns_zone: 'test.lab',     server: '10.30.50.11' }

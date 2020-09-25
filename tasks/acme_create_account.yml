@@ -5,12 +5,16 @@
   file:
     path: "{{ acme_ssl_basedir }}"
     state: 'directory'
+    owner: "{{ acme_ssl_owner }}"
+    group: "{{ acme_ssl_owner }}"
 
 - name: 'Generating new EC SSL key - ACME account'
   community.crypto.openssl_privatekey:
     path: "{{ acme_ssl_account_key }}"
     curve: "{{ acme_ssl_ecparam_curve }}"
     type: 'ECC'
+    owner: "{{ acme_ssl_owner }}"
+    group: "{{ acme_ssl_owner }}"
 
 - name: 'Create ACME account'
   community.crypto.acme_account:

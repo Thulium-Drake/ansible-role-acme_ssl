@@ -1,16 +1,6 @@
 ---
 # What: Generate and request certificates via ACME
 #
-- name: 'Set certificate owner'
-  block:
-    - name: 'Look up user running Ansible'
-      set_fact:
-        acme_ssl_owner: "{{ lookup('env', 'USER') }}"
-  rescue:
-    - name: 'Set owner to root'
-      set_fact:
-        acme_ssl_owner: 'root'
-
 - name: 'Check certificate directory'
   file:
     path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}"

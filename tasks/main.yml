@@ -9,6 +9,11 @@
     name: "{{ ssl_packages }}"
     state: 'present'
 
+- name: 'Set certificate owner'
+  set_fact:
+    acme_ssl_owner: "{{ lookup('env', 'USER') }}"
+  when: acme_ssl_owner is not defined
+
 - name: 'Check ACME account key'
   stat:
     path: "{{ acme_ssl_account_key }}"
