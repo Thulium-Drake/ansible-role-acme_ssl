@@ -2,12 +2,22 @@
 # What: Generate and request certificates via ACME
 #
 - name: 'Check certificate directory'
-  file:
-    path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}"
-    state: 'directory'
-    mode: 0770
-    owner: "{{ lookup('env', 'USER') }}"
-    group: "{{ lookup('env', 'USER') }}"
+  block:
+    - name: 'Ensure ownership of user running Ansible'
+      file:
+        path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}"
+        state: 'directory'
+        mode: 0770
+        owner: "{{ lookup('env', 'USER') }}"
+        group: "{{ lookup('env', 'USER') }}"
+  rescue:
+    - name: 'Ensure ownership of root'
+      file:
+        path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}"
+        state: 'directory'
+        mode: 0770
+        owner: 'root'
+        group: 'root'
 
 - block:
     - name: "Check certificate validity - {{ certificate.domain }}"
