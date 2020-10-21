@@ -66,6 +66,7 @@
           - 'dnsutils'
           - 'nginx-light'
           - 'openssh-server'
+          - 'ssh'
         state: 'present'
         update_cache: true
     - name: 'Configure nsupdate'
