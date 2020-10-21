@@ -31,6 +31,10 @@ platforms:
     volumes:
       - '/sys/fs/cgroup:/sys/fs/cgroup:ro'
     privileged: true
+    docker_networks:
+      - name: 'acmenet'
+        ipam_config:
+          - subnet: "10.30.50.0/16"
     networks:
       - name: "acmenet"
         ipv4_address: '10.30.50.11'
@@ -38,6 +42,10 @@ platforms:
     image: 'letsencrypt/pebble'
     command: 'pebble --dnsserver 10.30.50.11:53'
     pre_build_image: true
+    docker_networks:
+      - name: 'acmenet'
+        ipam_config:
+          - subnet: "10.30.50.0/16"
     networks:
       - name: "acmenet"
         ipv4_address: '10.30.50.10'
