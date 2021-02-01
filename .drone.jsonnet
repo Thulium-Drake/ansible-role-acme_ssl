@@ -15,7 +15,7 @@ local Converge(distro) = {
   ],
   networks: [
     { name: "acmenet",
-      ipv4_address: "10.30.50.10",
+      ipv4_address: "10.30.50.20",
     }
   ],
 };
