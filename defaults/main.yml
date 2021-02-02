@@ -47,4 +47,4 @@ acme_ssl_local_ansible: true            # Set to false if the system making the 
 acme_ssl_certificates:
   - { domain: 'site.example.com',  challenge: 'dns-01',  dns_zone: 'example.com',  server: '127.0.0.1' }
   - { domain: 'site2.example.com', type: 'RSA', challenge: 'http-01', web_dir: '/var/www/html', server: 'localhost' }
-  - { domain: 'site3.example.com', altname: 'DNS:service.example.com', challenge: 'http-01', web_dir: '/var/www/html', server: 'localhost' }
+  - { domain: 'site3.example.com', altname: 'service.example.com', challenge: 'http-01', web_dir: '/var/www/html', server: 'localhost' }
