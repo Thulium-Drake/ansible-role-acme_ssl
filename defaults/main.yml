@@ -30,6 +30,10 @@ acme_ssl_default_type: 'ECC'            # Default certificate type
 acme_ssl_default_challenge: 'dns-01'    # Default challenge type
 
 acme_ssl_nameserver: 'ns1.example.com'  # DNS master server
+acme_ssl_tsig_key_name: ''              # TSIG key name
+acme_ssl_tsig_key_secret: ''            # TSIG key value
+acme_ssl_tsig_algo: ''                  # TSIG key algorithm
+
 acme_ssl_dns_wait: 120                  # Time to wait in seconds for DNS update to propagate
 
 acme_ssl_reload_services: false         # Automatically try to reload supported services:

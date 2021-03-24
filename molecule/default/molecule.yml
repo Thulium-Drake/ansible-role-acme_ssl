@@ -7,8 +7,8 @@ driver:
   name: 'docker'
 lint: |
   set -e
-  yamllint -c molecule/default/yamllint.yml .
-  ansible-lint molecule/default/converge.yml
+  yamllint .
+  ansible-lint
 platforms:
   - name: "acme-ssl-client"
     image: "geerlingguy/docker-${MOLECULE_DISTRO:-debian10}-ansible:latest"
