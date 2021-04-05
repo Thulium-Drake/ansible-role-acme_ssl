@@ -1,30 +1,30 @@
 ---
 galaxy_info:
-  author: 'Jeffrey van Pelt'
-  description: 'ACME certificate deployment'
+  author: thulium_drake
+  description: ACME certificate deployment
   company:
-  role_name: 'acme_ssl'
+  role_name: acme_ssl
 
-  license: 'GPLv3'
+  license: GPLv3
 
   min_ansible_version: 2.9
 
   platforms:
-    - name: 'EL'
+    - name: EL
       versions:
         - 7
-    - name: 'Debian'
+    - name: Debian
       versions:
-        - 'buster'
-    - name: 'Ubuntu'
+        - buster
+    - name: Ubuntu
       versions:
-        - 'focal'
+        - focal
 
   galaxy_tags:
-    - 'acme'
-    - 'letsencrypt'
-    - 'ssl'
-    - 'certificates'
-    - 'provisioning'
+    - acme
+    - letsencrypt
+    - ssl
+    - certificates
+    - provisioning
 
 dependencies: []
