@@ -20,7 +20,7 @@ platforms:
     docker_networks:
       - name: 'acmenet'
         ipam_config:
-          - subnet: "10.30.50.0/16"
+          - subnet: "10.30.50.0/24"
     networks:
       - name: "acmenet"
         ipv4_address: '10.30.50.12'
@@ -34,7 +34,7 @@ platforms:
     docker_networks:
       - name: 'acmenet'
         ipam_config:
-          - subnet: "10.30.50.0/16"
+          - subnet: "10.30.50.0/24"
     networks:
       - name: "acmenet"
         ipv4_address: '10.30.50.11'
@@ -45,7 +45,7 @@ platforms:
     docker_networks:
       - name: 'acmenet'
         ipam_config:
-          - subnet: "10.30.50.0/16"
+          - subnet: "10.30.50.0/24"
     networks:
       - name: "acmenet"
         ipv4_address: '10.30.50.10'
