@@ -14,9 +14,9 @@
     zone: "{{ certificate.dns_zone | default(certificate.domain.split('.')[1:] | join('.')) }}"
     record:  "{{ acme_ssl_challenge_data['challenge_data'][certificate.domain]['dns-01']['resource'] }}.{{ certificate.domain }}."
     value: "{{ acme_ssl_challenge_data['challenge_data'][certificate.domain]['dns-01']['resource_value'] }}"
-    key_algorithm: "{{ (acme_ssl_tsig_algo != '') | ternary(acme_ssl_tsig_algo, omit) }}"
-    key_name: "{{ (acme_ssl_tsig_name != '') | ternary(acme_ssl_tsig_name, omit) }}"
-    key_secret: "{{ (acme_ssl_tsig_secret != '') | ternary(acme_ssl_tsig_secret, omit) }}"
+    key_algorithm: "{{ (acme_ssl_tsig_key_algo != '') | ternary(acme_ssl_tsig_key_algo, omit) }}"
+    key_name: "{{ (acme_ssl_tsig_key_name != '') | ternary(acme_ssl_tsig_key_name, omit) }}"
+    key_secret: "{{ (acme_ssl_tsig_key_secret != '') | ternary(acme_ssl_tsig_key_secret, omit) }}"
     state: 'present'
   register: 'dns_registered'
   retries: 5
@@ -32,9 +32,9 @@
     record:  "{{ acme_ssl_challenge_data['challenge_data'][altname_record]['dns-01']['resource'] }}.{{ altname_record }}."
     value: "{{ acme_ssl_challenge_data['challenge_data'][altname_record]['dns-01']['resource_value'] }}"
     state: 'present'
-    key_algorithm: "{{ (acme_ssl_tsig_algo != '') | ternary(acme_ssl_tsig_algo, omit) }}"
-    key_name: "{{ (acme_ssl_tsig_name != '') | ternary(acme_ssl_tsig_name, omit) }}"
-    key_secret: "{{ (acme_ssl_tsig_secret != '') | ternary(acme_ssl_tsig_secret, omit) }}"
+    key_algorithm: "{{ (acme_ssl_tsig_key_algo != '') | ternary(acme_ssl_tsig_key_algo, omit) }}"
+    key_name: "{{ (acme_ssl_tsig_key_name != '') | ternary(acme_ssl_tsig_key_name, omit) }}"
+    key_secret: "{{ (acme_ssl_tsig_key_secret != '') | ternary(acme_ssl_tsig_key_secret, omit) }}"
   register: 'dns_registered'
   retries: 5
   delay: 3
