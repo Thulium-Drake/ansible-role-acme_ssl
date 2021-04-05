@@ -85,6 +85,7 @@
     - name: 'Configure SQLite backend'
       copy:
         dest: '/etc/powerdns/pdns.d/sqlite.conf'
+        mode: 0644
         content: |
           local-address=0.0.0.0
           launch=gsqlite3
@@ -94,13 +95,14 @@
           guardian
     - name: 'Setup PowerDNS DB'
       shell: sqlite3 /var/lib/powerdns/zones.slave.d/powerdns.sqlite3 < /usr/share/doc/pdns-backend-sqlite3/schema.sqlite3.sql
+      changed_when: true
     - name: 'Correct permissions on DB'
       file:
         path: '/var/lib/powerdns/zones.slave.d/powerdns.sqlite3'
         owner: 'pdns'
         group: 'pdns'
     - name: 'Set root authorized_key'
-      authorized_key:
+      ansible.posix.authorized_key:
         user: 'root'
         key: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINBHe2fsfMz5ulMqAXJY1PWBNymcemXiPI7BW31/5yEh'
         state: 'present'
@@ -116,6 +118,7 @@
     - name: 'Configure nginx port'
       copy:
         dest: '/etc/nginx/sites-enabled/pebble.conf'
+        mode: 0644
         content: |
           server {
             listen 5002;

@@ -7,6 +7,7 @@
     state: 'directory'
     owner: "{{ acme_ssl_owner }}"
     group: "{{ acme_ssl_owner }}"
+    mode: 0640
 
 - name: 'Generating new EC SSL key - ACME account'
   community.crypto.openssl_privatekey:
@@ -15,6 +16,7 @@
     type: 'ECC'
     owner: "{{ acme_ssl_owner }}"
     group: "{{ acme_ssl_owner }}"
+    mode: 0640
 
 - name: 'Create ACME account'
   community.crypto.acme_account:
