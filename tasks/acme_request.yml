@@ -255,9 +255,7 @@
           chown root:ssl-cert fullchain_ca.crt
           cd /opt/zimbra/ssl/zimbra/commercial
           cp /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.key commercial.key
-          cp /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.cer commercial.crt
-          cp /etc/ssl/acme/{{ certificate.domain }}/fullchain_ca.crt commercial_ca.crt
-          sudo -u zimbra /opt/zimbra/bin/zmcertmgr deploycrt comm
+          sudo -u zimbra /opt/zimbra/bin/zmcertmgr deploycrt comm /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.cer /etc/ssl/acme/{{ certificate.domain }}/fullchain_ca.crt
       - name: 'Restarting Zimbra'
         service:
           name: 'zimbra'
