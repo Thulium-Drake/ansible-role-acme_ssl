@@ -22,6 +22,7 @@
   retries: 5
   delay: 3
   until: not dns_registered.failed
+  when: acme_ssl_challenge_data['authorizations'][certificate.domain] is not defined
 
 - name: "Register additional challenge DNS records - {{ certificate.domain }}"
   community.general.nsupdate:
@@ -42,7 +43,9 @@
   loop: "{{ certificate.altname }}"
   loop_control:
     loop_var: 'altname_record'
-  when: certificate.altname is defined
+  when:
+    - certificate.altname is defined
+    - acme_ssl_challenge_data['authorizations'][altname_record] is not defined
 
 - name: 'Wait for DNS update to propagate to slaves'
   pause:
