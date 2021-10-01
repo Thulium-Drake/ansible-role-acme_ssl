@@ -50,3 +50,4 @@
 - name: 'Wait for DNS update to propagate to slaves'
   pause:
     seconds: "{{ acme_ssl_dns_wait }}"
+  when: dns_registered.changed
