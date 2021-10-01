@@ -249,6 +249,7 @@
       - name: 'Deploying Zimbra certificate'
         shell: |
           cd /etc/ssl/acme/{{ certificate.domain }}
+          rm fullchain_ca.crt
           cat {{ certificate.domain }}_chain.cer ca.cer > fullchain_ca.crt
           cd /opt/zimbra/ssl/zimbra/commercial
           cp /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.key commercial.key
