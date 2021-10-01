@@ -18,6 +18,11 @@ acme_ssl_ca_url: 'https://letsencrypt.org/certs/fakeleintermediatex1.pem'       
 #acme_ssl_ca_url: 'https://letsencrypt.org/certs/isrgrootx1.pem'                  # Production ISRG Root
 #acme_ssl_ca_url: 'https://letsencrypt.org/certs/isrg-root-x1-cross-signed.pem'   # Production ISRG Root, Cross-Signed
 
+# Selection criteria for the used chain
+#acme_ssl_select_chain:
+#  test_certificates: 'last'
+#  issuer: {"commonName": "ISRG Root X1"}
+
 # ACME OCSP certificate URL
 acme_ssl_ocsp_url: 'https://letsencrypt.org/certs/isrg-root-ocsp-x1.pem.txt'
 

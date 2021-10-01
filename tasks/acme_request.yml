@@ -118,6 +118,7 @@
         chain: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}_chain.cer"
         fullchain: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}_fullchain.cer"
         data: "{{ acme_ssl_challenge_data }}"
+        select_chain: "{{ acme_ssl_select_chain | default(omit) }}"
       register: 'cert_validated'
       retries: 6
       delay: 60
