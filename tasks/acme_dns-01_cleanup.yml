@@ -13,7 +13,7 @@
     key_algorithm: "{{ (acme_ssl_tsig_key_algo != '') | ternary(acme_ssl_tsig_key_algo, omit) }}"
     key_name: "{{ (acme_ssl_tsig_key_name != '') | ternary(acme_ssl_tsig_key_name, omit) }}"
     key_secret: "{{ (acme_ssl_tsig_key_secret != '') | ternary(acme_ssl_tsig_key_secret, omit) }}"
-  when: acme_ssl_challenge_data['authorizations'][certificate.domain] is not defined
+  when: acme_ssl_challenge_data['authorizations'][certificate.domain]['status'] != 'valid'
 
 - name: "Remove additional challenge DNS records - {{ certificate.domain }}"
   community.general.nsupdate:
@@ -32,4 +32,4 @@
     loop_var: 'altname_record'
   when:
     - certificate.altname is defined
-    - acme_ssl_challenge_data['authorizations'][altname_record] is not defined
+    - acme_ssl_challenge_data['authorizations'][altname_record]['status'] != 'valid'
