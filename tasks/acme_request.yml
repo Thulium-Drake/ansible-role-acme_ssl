@@ -1,6 +1,10 @@
 ---
 # What: Generate and request certificates via ACME
 #
+- name: "Reset flag for certificate refresh failed - {{ certificate.domain }}"
+  set_fact:
+    acme_refresh_failed: false
+
 - name: 'Check certificate directory'
   file:
     path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}"
@@ -152,8 +156,8 @@
 
     rescue:
       - name: "Refreshing certificate failed - {{ certificate.domain }}"
-        debug:
-          msg: 'Refreshing certificate failed, please investigate! Moving on to the next one'
+        set_fact:
+          acme_refresh_failed: true
     always:
     - name: "Cleaning up challenge - {{ certificate.domain }}"
       include_tasks:
@@ -175,108 +179,6 @@
     - "{{ certificate.domain }}_fullchain.cer"
     - 'ca.cer'
     - 'ocsp.cer'
-  when: not acme_ssl_local_ansible
-
-- name: "Ensure ssl-cert group on target - {{ certificate.domain }}"
-  group:
-    name: 'ssl-cert'
-    state: 'present'
-  delegate_to: "{{ certificate.server }}"
-
-- name: "Create destdir on target - {{ certificate.domain }}"
-  file:
-    path: "{{ acme_ssl_destdir }}/{{ certificate.domain }}"
-    state: 'directory'
-    mode: 0750
-    group: 'ssl-cert'
-  delegate_to: "{{ certificate.server }}"
-
-- name: "Deploy certificates to target - {{ certificate.domain }}"
-  copy:
-    src: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item }}"
-    dest: "{{ acme_ssl_destdir }}/{{ certificate.domain }}/{{ item }}"
-    mode: 0644
-    owner: 'root'
-    group: 'ssl-cert'
-  delegate_to: "{{ certificate.server }}"
-  loop:
-    - "{{ certificate.domain }}.key"
-    - "{{ certificate.domain }}.csr"
-    - "{{ certificate.domain }}.cer"
-    - "{{ certificate.domain }}_chain.cer"
-    - "{{ certificate.domain }}_fullchain.cer"
-    - 'ca.cer'
-    - 'ocsp.cer'
-  register: 'deployed_cert'
-
-- name: 'Restart services'
-  block:
-  - name: 'Determine installed packages'
-    package_facts:
-      manager: 'auto'
-    register: 'acme_ssl_destserver_pkgs'
-
-  - name: 'Reload Apache'
-    service:
-      name: "{{ apache_service_name }}"
-      state: 'reloaded'
-    when: >
-      (acme_ssl_destserver_pkgs['ansible_facts']['packages']['httpd'] is defined) or
-      (acme_ssl_destserver_pkgs['ansible_facts']['packages']['apache2'] is defined)
-
-  - name: 'Reload nginx'
-    service:
-      name: 'nginx'
-      state: 'reloaded'
-    when: >
-      (acme_ssl_destserver_pkgs['ansible_facts']['packages']['nginx'] is defined) or
-      (acme_ssl_destserver_pkgs['ansible_facts']['packages']['nginx-light'] is defined) or
-      (acme_ssl_destserver_pkgs['ansible_facts']['packages']['nginx-full'] is defined) or
-      (acme_ssl_destserver_pkgs['ansible_facts']['packages']['nginx-extras'] is defined)
-
-  - name: 'Deploy Proxmox certificate and restart pveproxy'
-    block:
-    - name: 'Copy certificate files'
-      copy:
-        src: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item.src }}"
-        dest: "/etc/pve/local/{{ item.dest }}"
-      delegate_to: "{{ certificate.server }}"
-      loop:
-        - { src: "{{ certificate.domain }}.key", dest: 'pve-ssl.key' }
-        - { src: "{{ certificate.domain }}_fullchain.cer", dest: 'pve-ssl.pem' }
-    - name: 'Restart PVEProxy'
-      service:
-        name: 'pveproxy'
-        state: 'restarted'
-    when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['pve-manager'] is defined
-
-  - name: 'Deploy Zimbra certificate and restart'
-    block:
-      - name: 'Deploying Zimbra certificate'
-        shell: |
-          cd /etc/ssl/acme/{{ certificate.domain }}
-          rm fullchain_ca.crt
-          cat {{ certificate.domain }}_chain.cer ca.cer > fullchain_ca.crt
-          chown root:ssl-cert fullchain_ca.crt
-          cd /opt/zimbra/ssl/zimbra/commercial
-          cp /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.key commercial.key
-          sudo -u zimbra /opt/zimbra/bin/zmcertmgr deploycrt comm /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.cer /etc/ssl/acme/{{ certificate.domain }}/fullchain_ca.crt
-      - name: 'Restarting Zimbra'
-        service:
-          name: 'zimbra'
-          state: 'restarted'
-    when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['zimbra-core'] is defined
-
-  - name: 'Restart slapd'
-    service:
-      name: 'slapd'
-      state: 'restarted'
-    when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['slapd'] is defined
-  delegate_to: "{{ certificate.server }}"
   when:
-    - acme_ssl_reload_services | bool
-    - deployed_cert.changed
-  rescue:
-    - name: "Restarting service failed - {{ certificate.server }}"
-      debug:
-        msg: "Error restarting service! Please investigate!"
+    - not acme_ssl_local_ansible
+    - not acme_refresh_failed
