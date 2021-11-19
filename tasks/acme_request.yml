@@ -150,6 +150,10 @@
         owner: "{{ acme_ssl_owner }}"
         group: "{{ acme_ssl_owner }}"
 
+    rescue:
+      - name: "Refreshing certificate failed - {{ certificate.domain }}"
+        debug:
+          msg: 'Refreshing certificate failed, please investigate! Moving on to the next one'
     always:
     - name: "Cleaning up challenge - {{ certificate.domain }}"
       include_tasks:
@@ -205,7 +209,8 @@
     - 'ocsp.cer'
   register: 'deployed_cert'
 
-- block:
+- name: 'Restart services'
+  block:
   - name: 'Determine installed packages'
     package_facts:
       manager: 'auto'
@@ -271,3 +276,7 @@
   when:
     - acme_ssl_reload_services | bool
     - deployed_cert.changed
+  rescue:
+    - name: "Restarting service failed - {{ certificate.server }}"
+      debug:
+        msg: "Error restarting service! Please investigate!"
