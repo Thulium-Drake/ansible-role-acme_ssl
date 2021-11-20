@@ -36,10 +36,10 @@
     key_algorithm: "{{ (acme_ssl_tsig_key_algo != '') | ternary(acme_ssl_tsig_key_algo, omit) }}"
     key_name: "{{ (acme_ssl_tsig_key_name != '') | ternary(acme_ssl_tsig_key_name, omit) }}"
     key_secret: "{{ (acme_ssl_tsig_key_secret != '') | ternary(acme_ssl_tsig_key_secret, omit) }}"
-  register: 'dns_registered'
+  register: 'dns_alt_registered'
   retries: 5
   delay: 3
-  until: not dns_registered.failed
+  until: not dns_alt_registered.failed
   loop: "{{ certificate.altname }}"
   loop_control:
     loop_var: 'altname_record'
@@ -50,4 +50,4 @@
 - name: 'Wait for DNS update to propagate to slaves'
   pause:
     seconds: "{{ acme_ssl_dns_wait }}"
-  when: dns_registered.changed
+  when: dns_registered.changed or dns_alt_registered.changed
