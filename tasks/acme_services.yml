@@ -5,23 +5,24 @@
   set_fact:
     acme_deploy_failed: false
 
-- name: "Ensure ssl-cert group on target - {{ certificate.domain }}"
-  group:
-    name: 'ssl-cert'
-    state: 'present'
-  delegate_to: "{{ certificate.server }}"
-
-- name: "Create destdir on target - {{ certificate.domain }}"
-  file:
-    path: "{{ acme_ssl_destdir }}/{{ certificate.domain }}"
-    state: 'directory'
-    mode: 0750
-    group: 'ssl-cert'
-  delegate_to: "{{ certificate.server }}"
-
 - name: "Deploy certificates to target - {{ certificate.domain }}"
   block:
-    - copy:
+    - name: "Ensure ssl-cert group on target - {{ certificate.domain }}"
+      group:
+        name: 'ssl-cert'
+        state: 'present'
+      delegate_to: "{{ certificate.server }}"
+
+    - name: "Create destdir on target - {{ certificate.domain }}"
+      file:
+        path: "{{ acme_ssl_destdir }}/{{ certificate.domain }}"
+        state: 'directory'
+        mode: 0750
+        group: 'ssl-cert'
+      delegate_to: "{{ certificate.server }}"
+
+    - name: "Ensure certificat files on target - {{ certificate.domain }}"
+      copy:
         src: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item }}"
         dest: "{{ acme_ssl_destdir }}/{{ certificate.domain }}/{{ item }}"
         mode: 0644
