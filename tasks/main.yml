@@ -31,9 +31,9 @@
   loop_control:
     loop_var: 'certificate'
 
-- name: 'Restart services'
+- name: 'Deploy certificate and restart services'
   include_tasks:
-    file: 'acme_services.yml'
+    file: 'acme_deploy.yml'
   loop: "{{ acme_ssl_certificates }}"
   loop_control:
     loop_var: 'certificate'

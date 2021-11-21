@@ -21,7 +21,7 @@
         group: 'ssl-cert'
       delegate_to: "{{ certificate.server }}"
 
-    - name: "Ensure certificat files on target - {{ certificate.domain }}"
+    - name: "Ensure certificate files on target - {{ certificate.domain }}"
       copy:
         src: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item }}"
         dest: "{{ acme_ssl_destdir }}/{{ certificate.domain }}/{{ item }}"
