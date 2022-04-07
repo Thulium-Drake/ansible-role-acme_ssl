@@ -5,7 +5,7 @@ dependency:
     requirements-file: 'requirements.yml'
 driver:
   name: ${DRIVER_NAME:-docker}
-lint: |
+lint:
   set -e
   yamllint .
   ansible-lint
