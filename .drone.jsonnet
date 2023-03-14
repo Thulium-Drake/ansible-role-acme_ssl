@@ -75,8 +75,7 @@ local Converge(distro) = {
       { disable: true },
     steps: [
       Clone(),
-      Converge("debian10"),
-      Converge("ubuntu2004"),
+      Converge("debian11"),
       Converge("centos8"),
     ],
     volumes: [
