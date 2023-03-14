@@ -7,18 +7,15 @@ local Clone() = {
     "echo $$DRONE_CLONE_KEY | base64 -d > $HOME/.ssh/id_ed25519",
     "chmod 0600 $HOME/.ssh/id_ed25519",
     'echo -e "
-      Host $$DRONE_CLONE_HOST
-        Hostname $$DRONE_CLONE_HOST_REAL
+      Host *
         StrictHostKeyChecking accept-new
       " > $HOME/.ssh/config',
-    "cat $HOME/.ssh/config",
-    "git clone ${DRONE_GIT_SSH_URL} .",
+    "git clone ssh://git@$$DRONE_CLONE_HOST/${DRONE_REPO} .",
     "git checkout ${DRONE_COMMIT_BRANCH}"
   ],
   environment:
     { DRONE_CLONE_KEY: { from_secret: 'drone_clone_key' },
-      DRONE_CLONE_HOST: { from_secret: 'drone_clone_host' },
-      DRONE_CLONE_HOST_REAL: { from_secret: 'drone_clone_host_real' } },
+      DRONE_CLONE_HOST: { from_secret: 'drone_clone_host' } },
 };
 
 local Converge(distro) = {
