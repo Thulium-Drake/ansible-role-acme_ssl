@@ -1,3 +1,17 @@
+local Clone() = {
+  name: "Clone",
+  commands: [
+    "mkdir $HOME/.ssh",
+    "chmod 0700 $HOME/.ssh",
+    "echo $$DRONE_CLONE_KEY > $HOME/.ssh/id_ed25519",
+    "chmod 0600 $HOME/.ssh/id_ed25519",
+    "ssh-keyscan $$DRONE_CLONE_HOST > $HOME/.ssh/known_hosts"
+  ],
+  environment:
+    { DRONE_CLONE_KEY: { from_secret: 'drone_clone_key' },
+      DRONE_CLONE_HOST: { from_secret: 'drone_clone_host' } },
+}
+
 local Converge(distro) = {
   name: "Converge - "+distro,
   image: "registry.element-networks.nl/tools/molecule",
@@ -24,7 +38,10 @@ local Converge(distro) = {
   {
     name: "Lint",
     kind: "pipeline",
+    clone:
+      { disable: true },
     steps: [
+      Clone,
       {
         name: "Lint code",
         image: "registry.element-networks.nl/tools/molecule",
@@ -45,9 +62,12 @@ local Converge(distro) = {
     ],
   },
   {
-    kind: "pipeline",
     name: "Test",
+    kind: "pipeline",
+    clone:
+      { disable: true },
     steps: [
+      Clone,
       Converge("debian10"),
       Converge("ubuntu2004"),
       Converge("centos8"),
