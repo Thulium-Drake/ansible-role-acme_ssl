@@ -10,7 +10,7 @@ local Clone() = {
       Host *
         StrictHostKeyChecking accept-new
       " > $HOME/.ssh/config',
-    "git clone ssh://git@$$DRONE_CLONE_HOST/${DRONE_REPO} .",
+    "git clone ssh://git@$${DRONE_CLONE_HOST}/${DRONE_REPO} .",
     "git checkout ${DRONE_COMMIT_BRANCH}"
   ],
   environment:
