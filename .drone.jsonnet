@@ -6,10 +6,10 @@ local Clone() = {
     "chmod 0700 $HOME/.ssh",
     "echo $$DRONE_CLONE_KEY | base64 -d > $HOME/.ssh/id_ed25519",
     "chmod 0600 $HOME/.ssh/id_ed25519",
-    "cat <EOF> $HOME/.ssh/config
+    "echo -e '
       Host *
         StrictHostKeyChecking accept-new
-      EOF",
+      ' > $HOME/.ssh/config",
     "git clone ${DRONE_GIT_SSH_URL} .",
     "git checkout ${DRONE_COMMIT_BRANCH}"
   ],
