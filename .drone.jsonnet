@@ -1,5 +1,6 @@
 local Clone() = {
   name: "Clone",
+  image: "drone/git",
   commands: [
     "mkdir $HOME/.ssh",
     "chmod 0700 $HOME/.ssh",
