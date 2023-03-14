@@ -4,8 +4,7 @@ local Clone() = {
   commands: [
     "mkdir $HOME/.ssh",
     "chmod 0700 $HOME/.ssh",
-    "echo $$DRONE_CLONE_KEY > $HOME/.ssh/id_ed25519",
-    "cat $HOME/.ssh/id_ed25519",
+    "echo $$DRONE_CLONE_KEY | base64 -d > $HOME/.ssh/id_ed25519",
     "chmod 0600 $HOME/.ssh/id_ed25519",
     "ssh-keyscan $$DRONE_CLONE_HOST > $HOME/.ssh/known_hosts",
     "git clone ${DRONE_GIT_SSH_URL} .",
