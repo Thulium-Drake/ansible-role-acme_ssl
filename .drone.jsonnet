@@ -7,6 +7,8 @@ local Clone() = {
     "echo $$DRONE_CLONE_KEY > $HOME/.ssh/id_ed25519",
     "chmod 0600 $HOME/.ssh/id_ed25519",
     "ssh-keyscan $$DRONE_CLONE_HOST > $HOME/.ssh/known_hosts"
+    "git clone ${DRONE_GIT_SSH_URL} .",
+    "git checkout ${DRONE_COMMIT_BRANCH}"
   ],
   environment:
     { DRONE_CLONE_KEY: { from_secret: 'drone_clone_key' },
