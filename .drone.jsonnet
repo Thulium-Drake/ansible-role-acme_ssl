@@ -2,7 +2,6 @@ local Clone() = {
   name: "Clone",
   image: "drone/git",
   commands: [
-    "echo ${DRONE_REPO_NAME##*-}",
     "mkdir $HOME/.ssh",
     "chmod 0700 $HOME/.ssh",
     "echo $$DRONE_CLONE_KEY | base64 -d > $HOME/.ssh/id_ed25519",
@@ -100,7 +99,7 @@ local Converge(distro) = {
         name: "Ansible Galaxy",
         image: "registry.element-networks.nl/tools/molecule",
         commands: [
-          "ansible-galaxy import --token $$GALAXY_TOKEN Thulium-Drake ansible-role-acme_ssl --role-name=acme_ssl",
+          "ansible-galaxy import --token $$GALAXY_TOKEN Thulium-Drake ansible-role-${DRONE_REPO_NAME##*-} --role-name=${DRONE_REPO_NAME##*-}",
         ],
         environment:
           { GALAXY_TOKEN: { from_secret: "galaxy_token" } },
