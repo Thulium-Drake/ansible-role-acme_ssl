@@ -10,7 +10,7 @@ local Clone() = {
   environment:
     { DRONE_CLONE_KEY: { from_secret: 'drone_clone_key' },
       DRONE_CLONE_HOST: { from_secret: 'drone_clone_host' } },
-},
+};
 
 local Converge(distro) = {
   name: "Converge - "+distro,
@@ -41,7 +41,7 @@ local Converge(distro) = {
     clone:
       { disable: true },
     steps: [
-      Clone,
+      Clone(),
       {
         name: "Lint code",
         image: "registry.element-networks.nl/tools/molecule",
@@ -67,7 +67,7 @@ local Converge(distro) = {
     clone:
       { disable: true },
     steps: [
-      Clone,
+      Clone(),
       Converge("debian10"),
       Converge("ubuntu2004"),
       Converge("centos8"),
