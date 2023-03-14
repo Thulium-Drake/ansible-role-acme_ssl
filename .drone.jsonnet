@@ -2,6 +2,7 @@ local Clone() = {
   name: "Clone",
   image: "drone/git",
   commands: [
+    "echo ${DRONE_REPO_NAME##*-}
     "mkdir $HOME/.ssh",
     "chmod 0700 $HOME/.ssh",
     "echo $$DRONE_CLONE_KEY | base64 -d > $HOME/.ssh/id_ed25519",
