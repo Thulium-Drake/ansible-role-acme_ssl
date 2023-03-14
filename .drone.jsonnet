@@ -11,6 +11,7 @@ local Clone() = {
         Hostname $$DRONE_CLONE_HOST_REAL
         StrictHostKeyChecking accept-new
       ' > $HOME/.ssh/config",
+    "cat $HOME/.ssh/config",
     "git clone ${DRONE_GIT_SSH_URL} .",
     "git checkout ${DRONE_COMMIT_BRANCH}"
   ],
