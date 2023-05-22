@@ -2,19 +2,19 @@
 # What: Deploy certificate and restart services
 #
 - name: "Reset failed deployment flag - {{ certificate.domain }}"
-  set_fact:
+  ansible.builtin.set_fact:
     acme_deploy_failed: false
 
 - name: "Deploy certificates to target - {{ certificate.domain }}"
   block:
     - name: "Ensure ssl-cert group on target - {{ certificate.domain }}"
-      group:
+      ansible.builtin.group:
         name: 'ssl-cert'
         state: 'present'
       delegate_to: "{{ certificate.server }}"
 
     - name: "Create destdir on target - {{ certificate.domain }}"
-      file:
+      ansible.builtin.file:
         path: "{{ acme_ssl_destdir }}/{{ certificate.domain }}"
         state: 'directory'
         mode: 0750
@@ -22,7 +22,7 @@
       delegate_to: "{{ certificate.server }}"
 
     - name: "Ensure certificate files on target - {{ certificate.domain }}"
-      copy:
+      ansible.builtin.copy:
         src: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item }}"
         dest: "{{ acme_ssl_destdir }}/{{ certificate.domain }}/{{ item }}"
         mode: 0644
@@ -40,18 +40,18 @@
       register: 'deployed_cert'
   rescue:
     - name: "Deploying certificate failed - {{ certificate.domain }}"
-      set_fact:
+      ansible.builtin.set_fact:
         acme_deploy_failed: false
 
-- name: 'Restart services'
+- name: 'Restart services'  # noqa key-order
   block:
   - name: 'Determine installed packages'
-    package_facts:
+    ansible.builtin.package_facts:
       manager: 'auto'
     register: 'acme_ssl_destserver_pkgs'
 
   - name: 'Reload Apache'
-    service:
+    ansible.builtin.service:
       name: "{{ apache_service_name }}"
       state: 'reloaded'
     when: >
@@ -59,7 +59,7 @@
       (acme_ssl_destserver_pkgs['ansible_facts']['packages']['apache2'] is defined)
 
   - name: 'Reload nginx'
-    service:
+    ansible.builtin.service:
       name: 'nginx'
       state: 'reloaded'
     when: >
@@ -69,25 +69,29 @@
       (acme_ssl_destserver_pkgs['ansible_facts']['packages']['nginx-extras'] is defined)
 
   - name: 'Deploy Proxmox certificate and restart pveproxy'
+    when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['pve-manager'] is defined
     block:
     - name: 'Copy certificate files'
-      copy:
+      ansible.builtin.copy:
         src: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item.src }}"
         dest: "/etc/pve/local/{{ item.dest }}"
+        owner: 'root'
+        group: 'www-data'
+        mode: '0640'
       delegate_to: "{{ certificate.server }}"
       loop:
         - { src: "{{ certificate.domain }}.key", dest: 'pve-ssl.key' }
         - { src: "{{ certificate.domain }}_fullchain.cer", dest: 'pve-ssl.pem' }
     - name: 'Restart PVEProxy'
-      service:
+      ansible.builtin.service:
         name: 'pveproxy'
         state: 'restarted'
-    when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['pve-manager'] is defined
 
   - name: 'Deploy Zimbra certificate and restart'
+    when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['zimbra-core'] is defined
     block:
       - name: 'Deploying Zimbra certificate'
-        shell: |
+        ansible.builtin.shell: |
           cd /etc/ssl/acme/{{ certificate.domain }}
           rm fullchain_ca.crt
           cat {{ certificate.domain }}_chain.cer ca.cer > fullchain_ca.crt
@@ -95,14 +99,14 @@
           cd /opt/zimbra/ssl/zimbra/commercial
           cp /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.key commercial.key
           sudo -u zimbra /opt/zimbra/bin/zmcertmgr deploycrt comm /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.cer /etc/ssl/acme/{{ certificate.domain }}/fullchain_ca.crt
+        changed_when: true
       - name: 'Restarting Zimbra'
-        service:
+        ansible.builtin.service:
           name: 'zimbra'
           state: 'restarted'
-    when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['zimbra-core'] is defined
 
-  - name: 'Restart slapd'
-    service:
+  - name: 'Restart slapd'  # no-qa no-handler
+    ansible.builtin.service:
       name: 'slapd'
       state: 'restarted'
     when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['slapd'] is defined
@@ -113,5 +117,5 @@
     - deployed_cert.changed
   rescue:
     - name: "Restarting service failed - {{ certificate.server }}"
-      debug:
+      ansible.builtin.debug:
         msg: 'Error restarting service! Please investigate!'

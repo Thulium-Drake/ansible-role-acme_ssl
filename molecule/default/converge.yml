@@ -3,7 +3,7 @@
   hosts: 'acme-ssl-client'
   tasks:
     - name: 'Run Role'
-      include_role:
+      ansible.builtin.include_role:
         name: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') | basename }}"
   vars:
     ansible_python_interpreter: '/usr/bin/python3'

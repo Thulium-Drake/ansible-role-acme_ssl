@@ -2,7 +2,7 @@
 # All tasks required to create the validation for the DNS-01 challenge
 #
 - name: 'Check required packages'
-  package:
+  ansible.builtin.package:
     name: "{{ dns_packages }}"
     state: 'present'
 
@@ -48,6 +48,6 @@
     - acme_ssl_challenge_data['authorizations'][altname_record]['status'] != 'valid'
 
 - name: 'Wait for DNS update to propagate to slaves'
-  pause:
+  ansible.builtin.pause:
     seconds: "{{ acme_ssl_dns_wait }}"
   when: dns_registered.changed or dns_alt_registered.changed

@@ -2,18 +2,19 @@
 # What: Generate and request certificates via ACME
 #
 - name: "Reset flag for certificate refresh failed - {{ certificate.domain }}"
-  set_fact:
+  ansible.builtin.set_fact:
     acme_refresh_failed: false
 
 - name: 'Check certificate directory'
-  file:
+  ansible.builtin.file:
     path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}"
     state: 'directory'
     mode: 0770
     owner: "{{ acme_ssl_owner }}"
     group: "{{ acme_ssl_owner }}"
 
-- block:
+- name: 'Check certificate validity'
+  block:
     - name: "Check certificate validity - {{ certificate.domain }}"
       community.crypto.x509_certificate_info:
         path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.cer"
@@ -21,16 +22,17 @@
           min_validity: "+{{ acme_ssl_validity_min }}d"
       register: 'ssl_cert_info'
     - name: "Check certificate validity - {{ certificate.domain }}"
-      set_fact:
+      ansible.builtin.set_fact:
         acme_cert_valid: "{{ ssl_cert_info.valid_at.min_validity }}"
   rescue:
     - name: "Check certificate validity - {{ certificate.domain }}"
-      set_fact:
+      ansible.builtin.set_fact:
         acme_cert_valid: false
 
-- block:
+- name: 'Clear old files'  # noqa key-order
+  block:
   - name: "Clear old files - {{ certificate.domain }}"
-    file:
+    ansible.builtin.file:
       state: 'absent'
       path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item }}"
     loop:
@@ -61,23 +63,24 @@
       group: "{{ acme_ssl_owner }}"
     when: acme_ssl_type == 'RSA'
 
-  - block:
-    - name: "Generating SAN list - {{ certificate.domain }}"
-      set_fact:
-        san_list: "[ '{{ certificate.domain }}' ] + {{ certificate.altname }}"
-    - name: "Adding SAN prefixes - {{ certificate.domain }}"
-      set_fact:
-        san_list: "{{ san_list | map('regex_replace', '^', 'DNS:') | list }}"
-    - name: "Generating new CSR file with SAN - {{ certificate.domain }}"
-      community.crypto.openssl_csr:
-        path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.csr"
-        privatekey_path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
-        common_name: "{{ certificate.domain }}"
-        subject_alt_name: "{{ san_list }}"
-        mode: 0660
-        owner: "{{ acme_ssl_owner }}"
-        group: "{{ acme_ssl_owner }}"
+  - name: 'Generate SAN list'
     when: certificate.altname is defined
+    block:
+      - name: "Generating SAN list - {{ certificate.domain }}"
+        ansible.builtin.set_fact:
+          san_list: "[ '{{ certificate.domain }}' ] + {{ certificate.altname }}"
+      - name: "Adding SAN prefixes - {{ certificate.domain }}"
+        ansible.builtin.set_fact:
+          san_list: "{{ san_list | map('regex_replace', '^', 'DNS:') | list }}"
+      - name: "Generating new CSR file with SAN - {{ certificate.domain }}"
+        community.crypto.openssl_csr:
+          path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.csr"
+          privatekey_path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
+          common_name: "{{ certificate.domain }}"
+          subject_alt_name: "{{ san_list }}"
+          mode: 0660
+          owner: "{{ acme_ssl_owner }}"
+          group: "{{ acme_ssl_owner }}"
 
   - name: "Generating new CSR file - {{ certificate.domain }}"
     community.crypto.openssl_csr:
@@ -103,9 +106,11 @@
       cert: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.cer"
     register: 'acme_ssl_challenge_data'
 
-  - block:
+  - name: "Processing challenge"  # noqa no-handler
+    when: not acme_cert_valid
+    block:
     - name: "Processing challenge - {{ certificate.domain }}"
-      include_tasks:
+      ansible.builtin.include_tasks:
         file: 'acme_{{ certificate.challenge | default(acme_ssl_default_challenge) }}_create.yml'
 
     - name: "Validating and finishing request - {{ certificate.domain }}"
@@ -129,7 +134,7 @@
       until: not cert_validated.failed
 
     - name: "Downloading Issuing CA certificate - {{ certificate.domain }}"
-      uri:
+      ansible.builtin.uri:
         url: "{{ acme_ssl_ca_url }}"
         force: true
         status_code:
@@ -142,7 +147,7 @@
         group: "{{ acme_ssl_owner }}"
 
     - name: "Downloading Issuing CA OCSP certificate - {{ certificate.domain }}"
-      uri:
+      ansible.builtin.uri:
         url: "{{ acme_ssl_ocsp_url }}"
         force: true
         status_code:
@@ -156,17 +161,15 @@
 
     rescue:
       - name: "Refreshing certificate failed - {{ certificate.domain }}"
-        set_fact:
+        ansible.builtin.set_fact:
           acme_refresh_failed: true
     always:
     - name: "Cleaning up challenge - {{ certificate.domain }}"
-      include_tasks:
+      ansible.builtin.include_tasks:
         file: 'acme_{{ certificate.challenge | default(acme_ssl_default_challenge) }}_cleanup.yml'
-    when: acme_ssl_challenge_data is changed
-  when: not acme_cert_valid
 
 - name: "Sync certificates to Ansible Master - {{ certificate.domain }}"
-  fetch:
+  ansible.builtin.fetch:
     src: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item }}"
     dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item }}"
     fail_on_missing: false

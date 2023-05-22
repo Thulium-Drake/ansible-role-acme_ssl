@@ -4,7 +4,7 @@
   gather_facts: false
   tasks:
     - name: 'Create SSH directory'
-      file:
+      ansible.builtin.file:
         path: '/root/.ssh'
         state: 'directory'
         mode: 0700
@@ -12,7 +12,7 @@
         group: 'root'
 
     - name: 'Place SSH private key'
-      copy:
+      ansible.builtin.copy:
         dest: '/root/.ssh/id_ed25519'
         content: |
           -----BEGIN OPENSSH PRIVATE KEY-----
@@ -26,7 +26,7 @@
         owner: 'root'
         group: 'root'
     - name: 'Add Pebble to hosts file'
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: '/etc/hosts'
         regexp: '^10\.30\.50\.10'
         line: '10.30.50.10 pebble'
@@ -40,11 +40,11 @@
   gather_facts: true
   tasks:
     - name: 'Refresh APT'
-      apt:
+      ansible.builtin.apt:
         update_cache: true
       when: ansible_facts['os_family'] == 'Debian'
     - name: 'Refresh YUM'
-      yum:
+      ansible.builtin.yum:
         update_cache: true
       when: ansible_facts['os_family'] == 'RedHat'
 
@@ -53,12 +53,12 @@
   hosts: 'acme-ssl-helper'
   tasks:
     - name: 'Symlink python'
-      file:
+      ansible.builtin.file:
         path: '/usr/bin/python'
         state: 'link'
         src: '/usr/bin/python3'
     - name: 'Install tools'
-      apt:
+      ansible.builtin.apt:
         name:
           - 'pdns-backend-sqlite3'
           - 'sqlite3'
@@ -70,7 +70,7 @@
         state: 'present'
         update_cache: true
     - name: 'Configure nsupdate'
-      copy:
+      ansible.builtin.copy:
         dest: '/etc/powerdns/pdns.d/nsupdate.conf'
         content: |
           dnsupdate=yes
@@ -79,11 +79,11 @@
         owner: 'root'
         group: 'root'
     - name: 'Disable BIND backend'
-      file:
+      ansible.builtin.file:
         path: '/etc/powerdns/pdns.d/bind.conf'
         state: 'absent'
     - name: 'Configure SQLite backend'
-      copy:
+      ansible.builtin.copy:
         dest: '/etc/powerdns/pdns.d/sqlite.conf'
         mode: 0644
         content: |
@@ -94,10 +94,10 @@
           daemon
           guardian
     - name: 'Setup PowerDNS DB'
-      shell: sqlite3 /var/lib/powerdns/zones.slave.d/powerdns.sqlite3 < /usr/share/doc/pdns-backend-sqlite3/schema.sqlite3.sql
+      ansible.builtin.shell: sqlite3 /var/lib/powerdns/zones.slave.d/powerdns.sqlite3 < /usr/share/doc/pdns-backend-sqlite3/schema.sqlite3.sql
       changed_when: true
     - name: 'Correct permissions on DB'
-      file:
+      ansible.builtin.file:
         path: '/var/lib/powerdns/zones.slave.d/powerdns.sqlite3'
         owner: 'pdns'
         group: 'pdns'
@@ -107,7 +107,7 @@
         key: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINBHe2fsfMz5ulMqAXJY1PWBNymcemXiPI7BW31/5yEh'
         state: 'present'
     - name: 'Allow SSH password logins'
-      lineinfile:
+      ansible.builtin.lineinfile:
         path: '/etc/ssh/sshd_config'
         regexp: '^PermitRootLogin'
         line: 'PermitRootLogin yes'
@@ -116,7 +116,7 @@
         mode: 0644
         unsafe_writes: true
     - name: 'Configure nginx port'
-      copy:
+      ansible.builtin.copy:
         dest: '/etc/nginx/sites-enabled/pebble.conf'
         mode: 0644
         content: |
@@ -128,7 +128,7 @@
             }
           }
     - name: 'Restart services'
-      service:
+      ansible.builtin.service:
         name: "{{ service }}"
         state: 'restarted'
       loop:
@@ -138,11 +138,11 @@
       loop_control:
         loop_var: 'service'
     - name: 'Create DNS zone'
-      command: 'pdnsutil create-zone test.lab'
+      ansible.builtin.command: 'pdnsutil create-zone test.lab'
       changed_when: true
-      ignore_errors: true # This only fails when the container isn't freshly created
+      failed_when: false # This only fails when the container isn't freshly created
     - name: 'Fill DNS zone'
-      nsupdate:
+      community.general.nsupdate:
         server: 'localhost'
         ttl: 60
         type: 'A'

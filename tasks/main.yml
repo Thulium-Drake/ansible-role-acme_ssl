@@ -2,37 +2,37 @@
 # What: Generate and request certificates via ACME
 #
 - name: 'Include distribution specific vars'
-  include_vars:
+  ansible.builtin.include_vars:
     file: "{{ ansible_facts['os_family'] }}.yml"
 - name: 'Install required packages'
-  package:
+  ansible.builtin.package:
     name: "{{ ssl_packages }}"
     state: 'present'
 
 - name: 'Set certificate owner'
-  set_fact:
+  ansible.builtin.set_fact:
     acme_ssl_owner: "{{ lookup('env', 'USER') }}"
   when: acme_ssl_owner is not defined
 
 - name: 'Check ACME account key'
-  stat:
+  ansible.builtin.stat:
     path: "{{ acme_ssl_account_key }}"
   register: 'k'
 
 - name: 'Check ACME account'
-  include_tasks:
+  ansible.builtin.include_tasks:
     file: 'acme_create_account.yml'
   when: not k.stat.exists
 
 - name: 'Process request'
-  include_tasks:
+  ansible.builtin.include_tasks:
     file: 'acme_request.yml'
   loop: "{{ acme_ssl_certificates }}"
   loop_control:
     loop_var: 'certificate'
 
 - name: 'Deploy certificate and restart services'
-  include_tasks:
+  ansible.builtin.include_tasks:
     file: 'acme_deploy.yml'
   loop: "{{ acme_ssl_certificates }}"
   loop_control:

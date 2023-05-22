@@ -2,7 +2,7 @@
 # Tasks to create a new account on the ACME server
 #
 - name: 'Create basedir - ACME account'
-  file:
+  ansible.builtin.file:
     path: "{{ acme_ssl_basedir }}"
     state: 'directory'
     owner: "{{ acme_ssl_owner }}"
