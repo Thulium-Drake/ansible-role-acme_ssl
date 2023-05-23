@@ -9,10 +9,10 @@
     ansible_python_interpreter: '/usr/bin/python3'
     acme_ssl_owner: 'root'
     acme_ssl_certificates:
-      - { domain: 'altname.test.lab', altname: [ 'altname-validated.test.lab', ], dns_zone: 'test.lab', server: '10.30.50.11' }
-      - { domain: 'dns-validated.test.lab', altname: [ 'dns.test.lab' ], type: 'RSA', challenge: 'dns-01',   dns_zone: 'test.lab',     server: '10.30.50.11' }
-      - { domain: 'dns-splitname.test.lab', altname: [ 'dns-split.test.lab' ], type: 'RSA', challenge: 'dns-01', server: '10.30.50.11' }
-      - { domain: 'http-validated.test.lab', challenge: 'http-01',  web_dir: '/var/www/html', server: '10.30.50.11' }
+      - {domain: 'altname.test.lab', altname: ['altname-validated.test.lab'], dns_zone: 'test.lab', server: '10.30.50.11'}
+      - {domain: 'dns-validated.test.lab', altname: ['dns.test.lab'], type: 'RSA', challenge: 'dns-01', dns_zone: 'test.lab', server: '10.30.50.11'}
+      - {domain: 'dns-splitname.test.lab', altname: ['dns-split.test.lab'], type: 'RSA', challenge: 'dns-01', server: '10.30.50.11'}
+      - {domain: 'http-validated.test.lab', challenge: 'http-01', web_dir: '/var/www/html', server: '10.30.50.11'}
 
     acme_ssl_directory: 'https://pebble:14000/dir'
     acme_ssl_ca_url: 'https://pebble:15000/roots/0'

@@ -7,7 +7,7 @@
       ansible.builtin.file:
         path: '/root/.ssh'
         state: 'directory'
-        mode: 0700
+        mode: '0700'
         owner: 'root'
         group: 'root'
 
@@ -22,7 +22,7 @@
           AAAEBRzp1N5iRuu5cf2VOII+BLBMftSn5jesiwKsjW/jTsktBHe2fsfMz5ulMqAXJY1PWB
           NymcemXiPI7BW31/5yEhAAAAFHJvb3RAYWNtZS1zc2wtaGVscGVyAQ==
           -----END OPENSSH PRIVATE KEY-----
-        mode: 0600
+        mode: '0600'
         owner: 'root'
         group: 'root'
     - name: 'Add Pebble to hosts file'
@@ -32,7 +32,7 @@
         line: '10.30.50.10 pebble'
         owner: 'root'
         group: 'root'
-        mode: 0644
+        mode: '0644'
         unsafe_writes: true
 
 - name: 'Update package cache'
@@ -75,7 +75,7 @@
         content: |
           dnsupdate=yes
           allow-dnsupdate-from=0.0.0.0/0
-        mode: 0644
+        mode: '0644'
         owner: 'root'
         group: 'root'
     - name: 'Disable BIND backend'
@@ -85,7 +85,7 @@
     - name: 'Configure SQLite backend'
       ansible.builtin.copy:
         dest: '/etc/powerdns/pdns.d/sqlite.conf'
-        mode: 0644
+        mode: '0644'
         content: |
           local-address=0.0.0.0
           launch=gsqlite3
@@ -117,12 +117,12 @@
         line: 'PermitRootLogin yes'
         owner: 'root'
         group: 'root'
-        mode: 0644
+        mode: '0644'
         unsafe_writes: true
     - name: 'Configure nginx port'
       ansible.builtin.copy:
         dest: '/etc/nginx/sites-enabled/pebble.conf'
-        mode: 0644
+        mode: '0644'
         content: |
           server {
             listen 5002;

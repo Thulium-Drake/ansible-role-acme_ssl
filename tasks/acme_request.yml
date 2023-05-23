@@ -9,7 +9,7 @@
   ansible.builtin.file:
     path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}"
     state: 'directory'
-    mode: 0770
+    mode: '0770'
     owner: "{{ acme_ssl_owner }}"
     group: "{{ acme_ssl_owner }}"
 
@@ -49,7 +49,7 @@
         path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
         curve: "{{ acme_ssl_ecparam_curve }}"
         type: "{{ acme_ssl_type }}"
-        mode: 0660
+        mode: '0660'
         owner: "{{ acme_ssl_owner }}"
         group: "{{ acme_ssl_owner }}"
       when: acme_ssl_type == 'ECC'
@@ -59,7 +59,7 @@
         path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
         size: "{{ acme_ssl_rsa_bits }}"
         type: "{{ acme_ssl_type }}"
-        mode: 0660
+        mode: '0660'
         owner: "{{ acme_ssl_owner }}"
         group: "{{ acme_ssl_owner }}"
       when: acme_ssl_type == 'RSA'
@@ -79,7 +79,7 @@
             privatekey_path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
             common_name: "{{ certificate.domain }}"
             subject_alt_name: "{{ san_list }}"
-            mode: 0660
+            mode: '0660'
             owner: "{{ acme_ssl_owner }}"
             group: "{{ acme_ssl_owner }}"
 
@@ -89,7 +89,7 @@
         privatekey_path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
         common_name: "{{ certificate.domain }}"
         subject_alt_name: "DNS:{{ certificate.domain }}"
-        mode: 0660
+        mode: '0660'
         owner: "{{ acme_ssl_owner }}"
         group: "{{ acme_ssl_owner }}"
       when: certificate.altname is not defined
@@ -110,55 +110,55 @@
     - name: "Processing challenge"  # noqa no-handler
       when: not acme_cert_valid
       block:
-      - name: "Processing challenge - {{ certificate.domain }}"
-        ansible.builtin.include_tasks:
-          file: 'acme_{{ certificate.challenge | default(acme_ssl_default_challenge) }}_create.yml'
+        - name: "Processing challenge - {{ certificate.domain }}"
+          ansible.builtin.include_tasks:
+            file: 'acme_{{ certificate.challenge | default(acme_ssl_default_challenge) }}_create.yml'
 
-      - name: "Validating and finishing request - {{ certificate.domain }}"
-        community.crypto.acme_certificate:
-          account_key_src: "{{ acme_ssl_account_key }}"
-          challenge: "{{ certificate.challenge | default(acme_ssl_default_challenge) }}"
-          acme_directory: "{{ acme_ssl_directory }}"
-          validate_certs: "{{ acme_ssl_directory_validate }}"
-          acme_version: "{{ acme_ssl_directory_version }}"
-          remaining_days: "{{ acme_ssl_validity_min }}"
-          terms_agreed: "{{ acme_ssl_terms_agreed }}"
-          csr: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.csr"
-          cert: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.cer"
-          chain: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}_chain.cer"
-          fullchain: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}_fullchain.cer"
-          data: "{{ acme_ssl_challenge_data }}"
-          select_chain: "{{ acme_ssl_select_chain | default(omit) }}"
-        register: 'cert_validated'
-        retries: 6
-        delay: 60
-        until: not cert_validated.failed
+        - name: "Validating and finishing request - {{ certificate.domain }}"
+          community.crypto.acme_certificate:
+            account_key_src: "{{ acme_ssl_account_key }}"
+            challenge: "{{ certificate.challenge | default(acme_ssl_default_challenge) }}"
+            acme_directory: "{{ acme_ssl_directory }}"
+            validate_certs: "{{ acme_ssl_directory_validate }}"
+            acme_version: "{{ acme_ssl_directory_version }}"
+            remaining_days: "{{ acme_ssl_validity_min }}"
+            terms_agreed: "{{ acme_ssl_terms_agreed }}"
+            csr: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.csr"
+            cert: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.cer"
+            chain: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}_chain.cer"
+            fullchain: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}_fullchain.cer"
+            data: "{{ acme_ssl_challenge_data }}"
+            select_chain: "{{ acme_ssl_select_chain | default(omit) }}"
+          register: 'cert_validated'
+          retries: 6
+          delay: 60
+          until: not cert_validated.failed
 
-      - name: "Downloading Issuing CA certificate - {{ certificate.domain }}"
-        ansible.builtin.uri:
-          url: "{{ acme_ssl_ca_url }}"
-          force: true
-          status_code:
-            - 200
-            - 304
-          validate_certs: "{{ acme_ssl_directory_validate }}"
-          dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/ca.cer"
-          mode: 0660
-          owner: "{{ acme_ssl_owner }}"
-          group: "{{ acme_ssl_owner }}"
+        - name: "Downloading Issuing CA certificate - {{ certificate.domain }}"
+          ansible.builtin.uri:
+            url: "{{ acme_ssl_ca_url }}"
+            force: true
+            status_code:
+              - 200
+              - 304
+            validate_certs: "{{ acme_ssl_directory_validate }}"
+            dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/ca.cer"
+            mode: '0660'
+            owner: "{{ acme_ssl_owner }}"
+            group: "{{ acme_ssl_owner }}"
 
-      - name: "Downloading Issuing CA OCSP certificate - {{ certificate.domain }}"
-        ansible.builtin.uri:
-          url: "{{ acme_ssl_ocsp_url }}"
-          force: true
-          status_code:
-            - 200
-            - 304
-          validate_certs: "{{ acme_ssl_directory_validate }}"
-          dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/ocsp.cer"
-          mode: 0660
-          owner: "{{ acme_ssl_owner }}"
-          group: "{{ acme_ssl_owner }}"
+        - name: "Downloading Issuing CA OCSP certificate - {{ certificate.domain }}"
+          ansible.builtin.uri:
+            url: "{{ acme_ssl_ocsp_url }}"
+            force: true
+            status_code:
+              - 200
+              - 304
+            validate_certs: "{{ acme_ssl_directory_validate }}"
+            dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/ocsp.cer"
+            mode: '0660'
+            owner: "{{ acme_ssl_owner }}"
+            group: "{{ acme_ssl_owner }}"
 
       rescue:
         - name: "Refreshing certificate failed - {{ certificate.domain }}"

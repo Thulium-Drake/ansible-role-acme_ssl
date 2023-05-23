@@ -9,17 +9,17 @@ acme_ssl_admin_email: 'root@example.com'                    # Accept the terms o
 
 # Which ACME directory to use
 acme_ssl_directory: 'https://acme-staging-v02.api.letsencrypt.org/directory'  # Staging
-#acme_ssl_directory: 'https://acme-v02.api.letsencrypt.org/directory'         # Production
+# acme_ssl_directory: 'https://acme-v02.api.letsencrypt.org/directory'         # Production
 
 acme_ssl_directory_validate: true                           # Check the certificates for the ACME directory
 
 # ACME CA certificate URL
 acme_ssl_ca_url: 'https://letsencrypt.org/certs/fakeleintermediatex1.pem'         # Staging
-#acme_ssl_ca_url: 'https://letsencrypt.org/certs/isrgrootx1.pem'                  # Production ISRG Root
-#acme_ssl_ca_url: 'https://letsencrypt.org/certs/isrg-root-x1-cross-signed.pem'   # Production ISRG Root, Cross-Signed
+# acme_ssl_ca_url: 'https://letsencrypt.org/certs/isrgrootx1.pem'                  # Production ISRG Root
+# acme_ssl_ca_url: 'https://letsencrypt.org/certs/isrg-root-x1-cross-signed.pem'   # Production ISRG Root, Cross-Signed
 
 # Selection criteria for the used chain
-#acme_ssl_select_chain:
+# acme_ssl_select_chain:
 #  test_certificates: 'last'
 #  issuer: {"commonName": "ISRG Root X1"}
 
@@ -53,6 +53,6 @@ acme_ssl_local_ansible: true            # Set to false if the system making the 
 # server: destination server to use the cert on. Please note that this is also the webserver used for http-01 validation.
 # If you wish to have different machines where you want to mint certs and use them, use the dns-01 challenge.
 acme_ssl_certificates:
-  - { domain: 'site.example.com',  challenge: 'dns-01',  dns_zone: 'example.com',  server: '127.0.0.1' }
-  - { domain: 'site2.example.com', type: 'RSA', challenge: 'http-01', web_dir: '/var/www/html', server: 'localhost' }
-  - { domain: 'site3.example.com', altname: 'service.example.com', challenge: 'http-01', web_dir: '/var/www/html', server: 'localhost' }
+  - {domain: 'site.example.com', challenge: 'dns-01', dns_zone: 'example.com', server: '127.0.0.1'}
+  - {domain: 'site2.example.com', type: 'RSA', challenge: 'http-01', web_dir: '/var/www/html', server: 'localhost'}
+  - {domain: 'site3.example.com', altname: 'service.example.com', challenge: 'http-01', web_dir: '/var/www/html', server: 'localhost'}
