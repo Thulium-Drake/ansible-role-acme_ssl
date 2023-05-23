@@ -13,6 +13,9 @@ platforms:
     volumes:
       - '/sys/fs/cgroup:/sys/fs/cgroup:ro'
     privileged: true
+    network: 'acmenet'
+    ip: '10.30.50.12'
+    subnet: '10.30.50.0/24'
     docker_networks:
       - name: 'acmenet'
         ipam_config:
@@ -20,13 +23,17 @@ platforms:
     networks:
       - name: "acmenet"
         ipv4_address: '10.30.50.12'
+
   - name: "acme-ssl-helper"
-    image: "geerlingguy/docker-debian10-ansible:latest"
+    image: "geerlingguy/docker-debian11-ansible:latest"
     command: '/lib/systemd/systemd'
     pre_build_image: true
     volumes:
       - '/sys/fs/cgroup:/sys/fs/cgroup:ro'
     privileged: true
+    network: 'acmenet'
+    ip: '10.30.50.11'
+    subnet: '10.30.50.0/24'
     docker_networks:
       - name: 'acmenet'
         ipam_config:
@@ -38,6 +45,10 @@ platforms:
     image: 'letsencrypt/pebble'
     command: 'pebble --dnsserver 10.30.50.11:53'
     pre_build_image: true
+    privileged: true
+    network: 'acmenet'
+    ip: '10.30.50.10'
+    subnet: '10.30.50.0/24'
     docker_networks:
       - name: 'acmenet'
         ipam_config:

@@ -74,7 +74,7 @@
         dest: '/etc/powerdns/pdns.d/nsupdate.conf'
         content: |
           dnsupdate=yes
-          allow-dnsupdate-from=10.30.50.0/24,127.0.0.1/32
+          allow-dnsupdate-from=0.0.0.0/0
         mode: 0644
         owner: 'root'
         group: 'root'
@@ -94,7 +94,11 @@
           daemon
           guardian
     - name: 'Setup PowerDNS DB'
-      ansible.builtin.shell: sqlite3 /var/lib/powerdns/zones.slave.d/powerdns.sqlite3 < /usr/share/doc/pdns-backend-sqlite3/schema.sqlite3.sql
+      ansible.builtin.shell: |
+        sqlite3 /var/lib/powerdns/zones.slave.d/powerdns.sqlite3 < /usr/share/doc/pdns-backend-sqlite3/schema.sqlite3.sql
+        touch /root/db_done
+      args:
+        creates: '/root/db_done'
       changed_when: true
     - name: 'Correct permissions on DB'
       ansible.builtin.file:
@@ -137,23 +141,33 @@
         - 'ssh'
       loop_control:
         loop_var: 'service'
+    - name: 'Render default zone'
+      ansible.builtin.copy:
+        dest: '/root/zone'
+        content: |
+          $ORIGIN .
+          test.lab 60 IN SOA ns.test.lab hostmaster.test.lab 2020010101 600 600 604800 600
+          test.lab 60 IN NS ns.test.lab
+          ns.test.lab 60 IN A 10.30.50.11
+        owner: 'root'
+        group: 'root'
+        mode: '0644'
     - name: 'Create DNS zone'
-      ansible.builtin.command: 'pdnsutil create-zone test.lab'
+      ansible.builtin.command: 'pdnsutil load-zone test.lab /root/zone'
       changed_when: true
-      failed_when: false # This only fails when the container isn't freshly created
     - name: 'Fill DNS zone'
       community.general.nsupdate:
-        server: 'localhost'
-        ttl: 60
+        server: '127.0.0.1'
+        ttl: '60'
         type: 'A'
-        zone: 'test.lab.'
+        zone: 'test.lab'
         record: "{{ record }}"
         value: '10.30.50.11'
         state: 'present'
       loop:
-        - 'dns-validated.test.lab.'
-        - 'http-validated.test.lab.'
-        - 'altname-validated.test.lab.'
-        - 'altname.test.lab.'
+        - 'dns-validated'
+        - 'http-validated'
+        - 'altname-validated'
+        - 'altname'
       loop_control:
         loop_var: 'record'

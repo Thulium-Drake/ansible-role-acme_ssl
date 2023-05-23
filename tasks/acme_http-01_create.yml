@@ -5,12 +5,16 @@
   ansible.builtin.file:
     path: "{{ certificate.web_dir }}/.well-known/acme-challenge"
     state: 'directory'
-    mode: 0755
+    owner: 'root'
+    group: 'root'
+    mode: '0755'
   delegate_to: "{{ acme_ssl_webserver }}"
 
 - name: "Place challenge token on webserver - {{ certificate.domain }}"
   ansible.builtin.copy:
     dest: "{{ certificate.web_dir }}/{{ acme_ssl_challenge_data['challenge_data'][certificate.domain]['http-01']['resource'] }}"
     content: "{{  acme_ssl_challenge_data['challenge_data'][certificate.domain]['http-01']['resource_value'] }}"
-    mode: 0644
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
   delegate_to: "{{ acme_ssl_webserver }}"
