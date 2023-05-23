@@ -13,3 +13,7 @@ repos:
     hooks:
       - id: ansible-lint
         files: \.(yaml|yml)$
+  - repo: 'https://github.com/Thulium-Drake/ansible-sign'
+    rev: 'main'
+    hooks:
+      - id: ansible-sign
