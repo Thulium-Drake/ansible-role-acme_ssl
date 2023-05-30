@@ -1,6 +1,5 @@
 [![Build Status](https://drone.element-networks.nl/api/badges/Element-Networks/ansible-role-acme_ssl/status.svg)](https://drone.element-networks.nl/Element-Networks/ansible-role-acme_ssl)
 
-
 # SSL certificates powered by ACME
 This role will roll manage SSL certificates for given hosts using the ACME
 protocol.
