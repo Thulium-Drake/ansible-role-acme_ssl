@@ -48,8 +48,8 @@ acme_ssl_local_ansible: true            # Set to false if the system making the 
 
 # DNS TLSA settings (only for TCP services)
 acme_ssl_tlsa_update: true              # Update TLSA records, uses settings for DNS-01 challenge
-acme_ssl_tlsa_trust_config: 1           # DNS TLSA trust level for TLSA records
-acme_ssl_tlsa_default_port: 443         # Default port to register TLSA records for
+acme_ssl_tlsa_trust_mode: 1             # Default DNS TLSA trust mode for TLSA records, can be overriden per record
+acme_ssl_tlsa_default_port: 443         # Default port to register TLSA records for, can be overriden per record
 
 # The certficates that are requested
 # domain: name of the certificate
@@ -62,5 +62,6 @@ acme_ssl_tlsa_default_port: 443         # Default port to register TLSA records 
 acme_ssl_certificates:
   - {domain: 'site.example.com', challenge: 'dns-01', dns_zone: 'example.com', server: '127.0.0.1'}
   - {domain: 'site-tlsa.example.com', challenge: 'dns-01', dns_zone: 'example.com', server: '127.0.0.1', tlsa_port: 8443}
+  - {domain: 'mail-tlsa.example.com', challenge: 'dns-01', dns_zone: 'example.com', server: '127.0.0.1', tlsa_port: 25, tlsa_trust_mode: 3 }
   - {domain: 'site2.example.com', type: 'RSA', challenge: 'http-01', web_dir: '/var/www/html', server: 'localhost'}
   - {domain: 'site3.example.com', altname: 'service.example.com', challenge: 'http-01', web_dir: '/var/www/html', server: 'localhost'}
