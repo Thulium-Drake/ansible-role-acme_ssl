@@ -9,7 +9,7 @@ repos:
       - id: 'check-added-large-files'
       - id: 'check-merge-conflict'
   - repo: 'https://github.com/ansible-community/ansible-lint.git'
-    rev: 'v6.16.2'
+    rev: 'v6.17.1'
     hooks:
       - id: ansible-lint
         files: \.(yaml|yml)$
