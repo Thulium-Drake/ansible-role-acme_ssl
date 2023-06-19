@@ -47,4 +47,4 @@
   loop: "{{ certificate.altname }}"
   loop_control:
     loop_var: 'altname_record'
-  when: certificate.altname_record is defined
+  when: certificate.altname is defined
