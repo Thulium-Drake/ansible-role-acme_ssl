@@ -33,7 +33,7 @@
     server: "{{ acme_ssl_nameserver }}"
     ttl: "60"
     type: "TLSA"
-    zone: "{{ certificate.dns_zone | default(altname_record.domain.split('.')[1:] | join('.')) }}"
+    zone: "{{ certificate.dns_zone | default(altname_record.split('.')[1:] | join('.')) }}"
     record: "{{ '_' + certificate.tlsa_port | default(acme_ssl_tlsa_default_port) | string + '._tcp' }}.{{ altname_record }}"
     value: "{{ acme_ssl_tlsa_trust_config }} 0 1 {{ cert_info['fingerprints']['sha256'] | replace(':', '') }}"
     key_algorithm: "{{ (acme_ssl_tsig_key_algo != '') | ternary(acme_ssl_tsig_key_algo, omit) }}"
