@@ -31,6 +31,13 @@
   loop_control:
     loop_var: 'certificate'
 
+- name: 'Deploy certificate and restart services'
+  ansible.builtin.include_tasks:
+    file: 'acme_deploy.yml'
+  loop: "{{ acme_ssl_certificates }}"
+  loop_control:
+    loop_var: 'certificate'
+
 - name: 'Update TLSA records'
   ansible.builtin.include_tasks:
     file: 'acme_tlsa_update.yml'
@@ -38,10 +45,3 @@
   loop_control:
     loop_var: 'certificate'
   when: acme_ssl_tlsa_update
-
-- name: 'Deploy certificate and restart services'
-  ansible.builtin.include_tasks:
-    file: 'acme_deploy.yml'
-  loop: "{{ acme_ssl_certificates }}"
-  loop_control:
-    loop_var: 'certificate'
