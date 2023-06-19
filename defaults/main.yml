@@ -45,14 +45,22 @@ acme_ssl_reload_services: false         # Automatically try to reload supported 
 
 acme_ssl_local_ansible: true            # Set to false if the system making the ACME requests is not the Ansible
                                         # controller
+
+# DNS TLSA settings (only for TCP services)
+acme_ssl_tlsa_update: true              # Update TLSA records, uses settings for DNS-01 challenge
+acme_ssl_tlsa_trust_config: 1           # DNS TLSA trust level for TLSA records
+acme_ssl_tlsa_default_port: 443         # Default port to register TLSA records for
+
 # The certficates that are requested
 # domain: name of the certificate
 # challenge: dns-01 or http-01
 # type: ECC or RSA
 # dns_zone / web_dir: Directory/Zone to update with the challenge
 # server: destination server to use the cert on. Please note that this is also the webserver used for http-01 validation.
+# tlsa_port: which TCP port to register TLSA records for
 # If you wish to have different machines where you want to mint certs and use them, use the dns-01 challenge.
 acme_ssl_certificates:
   - {domain: 'site.example.com', challenge: 'dns-01', dns_zone: 'example.com', server: '127.0.0.1'}
+  - {domain: 'site-tlsa.example.com', challenge: 'dns-01', dns_zone: 'example.com', server: '127.0.0.1', tlsa_port: 8443}
   - {domain: 'site2.example.com', type: 'RSA', challenge: 'http-01', web_dir: '/var/www/html', server: 'localhost'}
   - {domain: 'site3.example.com', altname: 'service.example.com', challenge: 'http-01', web_dir: '/var/www/html', server: 'localhost'}
