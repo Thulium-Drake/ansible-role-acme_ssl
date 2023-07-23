@@ -1,21 +1,10 @@
 ---
 - name: 'Clean up'
-  hosts: 'acme-ssl-client'
-  gather_facts: false
-  ignore_unreachable: true
-  tasks:
-    - name: 'Remove all ACME files on ACME client'
-      ansible.builtin.file:
-        path: '/etc/acme-ssl'
-        state: 'absent'
-      failed_when: false
-
-- name: 'Clean up'
   hosts: 'localhost'
   gather_facts: false
   tasks:
     - name: 'Remove all ACME files on Ansible master'
       ansible.builtin.file:
-        path: '/etc/acme-ssl'
+        path: "{{ acme_ssl_basedir }}"
         state: 'absent'
       failed_when: false
