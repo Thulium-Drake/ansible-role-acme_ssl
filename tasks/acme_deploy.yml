@@ -1,45 +1,45 @@
 ---
 # What: Deploy certificate and restart services
 #
-- name: "Reset failed deployment flag - {{ certificate.domain }}"
+- name: "Reset failed deployment flag - {{ certificate['domain'] }}"
   ansible.builtin.set_fact:
     acme_deploy_failed: false
 
-- name: "Deploy certificates to target - {{ certificate.domain }}"
+- name: "Deploy certificates to target - {{ certificate['domain'] }}"
   block:
-    - name: "Ensure ssl-cert group on target - {{ certificate.domain }}"
+    - name: "Ensure ssl-cert group on target - {{ certificate['domain'] }}"
       ansible.builtin.group:
         name: 'ssl-cert'
         state: 'present'
-      delegate_to: "{{ certificate.server }}"
+      delegate_to: "{{ certificate['server'] }}"
 
-    - name: "Create destdir on target - {{ certificate.domain }}"
+    - name: "Create destdir on target - {{ certificate['domain'] }}"
       ansible.builtin.file:
-        path: "{{ acme_ssl_destdir }}/{{ certificate.domain }}"
+        path: "{{ acme_ssl_destdir }}/{{ certificate['domain'] }}"
         state: 'directory'
         mode: '0750'
         group: 'ssl-cert'
-      delegate_to: "{{ certificate.server }}"
+      delegate_to: "{{ certificate['server'] }}"
 
-    - name: "Ensure certificate files on target - {{ certificate.domain }}"
+    - name: "Ensure certificate files on target - {{ certificate['domain'] }}"
       ansible.builtin.copy:
-        src: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item }}"
-        dest: "{{ acme_ssl_destdir }}/{{ certificate.domain }}/{{ item }}"
+        src: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ item }}"
+        dest: "{{ acme_ssl_destdir }}/{{ certificate['domain'] }}/{{ item }}"
         mode: '0644'
         owner: 'root'
         group: 'ssl-cert'
-      delegate_to: "{{ certificate.server }}"
+      delegate_to: "{{ certificate['server'] }}"
       loop:
-        - "{{ certificate.domain }}.key"
-        - "{{ certificate.domain }}.csr"
-        - "{{ certificate.domain }}.cer"
-        - "{{ certificate.domain }}_chain.cer"
-        - "{{ certificate.domain }}_fullchain.cer"
+        - "{{ certificate['domain'] }}.key"
+        - "{{ certificate['domain'] }}.csr"
+        - "{{ certificate['domain'] }}.cer"
+        - "{{ certificate['domain'] }}_chain.cer"
+        - "{{ certificate['domain'] }}_fullchain.cer"
         - 'ca.cer'
         - 'ocsp.cer'
       register: 'deployed_cert'
   rescue:
-    - name: "Deploying certificate failed - {{ certificate.domain }}"
+    - name: "Deploying certificate failed - {{ certificate['domain'] }}"
       ansible.builtin.set_fact:
         acme_deploy_failed: false
 
@@ -47,8 +47,8 @@
   when:
     - acme_ssl_reload_services | bool
     - not acme_deploy_failed | bool
-    - deployed_cert.changed
-  delegate_to: "{{ certificate.server }}"
+    - deployed_cert['changed']
+  delegate_to: "{{ certificate['server'] }}"
   block:
     - name: 'Determine installed packages'
       ansible.builtin.package_facts:
@@ -78,15 +78,15 @@
       block:
         - name: 'Copy certificate files'
           ansible.builtin.copy:
-            src: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item.src }}"
-            dest: "/etc/pve/local/{{ item.dest }}"
+            src: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ item['src'] }}"
+            dest: "/etc/pve/local/{{ item['dest'] }}"
             owner: 'root'
             group: 'www-data'
             mode: '0640'
-          delegate_to: "{{ certificate.server }}"
+          delegate_to: "{{ certificate['server'] }}"
           loop:
-            - { src: "{{ certificate.domain }}.key", dest: 'pve-ssl.key' }
-            - { src: "{{ certificate.domain }}_fullchain.cer", dest: 'pve-ssl.pem' }
+            - { src: "{{ certificate['domain'] }}.key", dest: 'pve-ssl.key' }
+            - { src: "{{ certificate['domain'] }}_fullchain.cer", dest: 'pve-ssl.pem' }
         - name: 'Restart PVEProxy'
           ansible.builtin.service:
             name: 'pveproxy'
@@ -97,13 +97,13 @@
       block:
         - name: 'Deploying Zimbra certificate'
           ansible.builtin.shell: |
-            cd /etc/ssl/acme/{{ certificate.domain }}
+            cd /etc/ssl/acme/{{ certificate['domain'] }}
             rm fullchain_ca.crt
-            cat {{ certificate.domain }}_chain.cer ca.cer > fullchain_ca.crt
+            cat {{ certificate['domain'] }}_chain.cer ca.cer > fullchain_ca.crt
             chown root:ssl-cert fullchain_ca.crt
             cd /opt/zimbra/ssl/zimbra/commercial
-            cp /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.key commercial.key
-            sudo -u zimbra /opt/zimbra/bin/zmcertmgr deploycrt comm /etc/ssl/acme/{{ certificate.domain }}/{{ certificate.domain }}.cer /etc/ssl/acme/{{ certificate.domain }}/fullchain_ca.crt
+            cp /etc/ssl/acme/{{ certificate['domain'] }}/{{ certificate['domain'] }}.key commercial.key
+            sudo -u zimbra /opt/zimbra/bin/zmcertmgr deploycrt comm /etc/ssl/acme/{{ certificate['domain'] }}/{{ certificate['domain'] }}.cer /etc/ssl/acme/{{ certificate['domain'] }}/fullchain_ca.crt
           changed_when: true
         - name: 'Restarting Zimbra'
           ansible.builtin.service:
@@ -116,6 +116,6 @@
         state: 'restarted'
       when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['slapd'] is defined
   rescue:
-    - name: "Restarting service failed - {{ certificate.server }}"
+    - name: "Restarting service failed - {{ certificate['server'] }}"
       ansible.builtin.debug:
         msg: 'Error restarting service! Please investigate!'

@@ -4,6 +4,7 @@
 - name: 'Include distribution specific vars'
   ansible.builtin.include_vars:
     file: "{{ ansible_facts['os_family'] }}.yml"
+
 - name: 'Install required packages'
   ansible.builtin.package:
     name: "{{ ssl_packages }}"
@@ -22,7 +23,7 @@
 - name: 'Check ACME account'
   ansible.builtin.include_tasks:
     file: 'acme_create_account.yml'
-  when: not k.stat.exists
+  when: not k['stat']['exists']
 
 - name: 'Process request'
   ansible.builtin.include_tasks:

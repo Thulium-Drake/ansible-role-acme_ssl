@@ -1,7 +1,7 @@
 ---
 # All tasks required to cleanup the validation for the HTTP-01 challenge
 #
-- name: "Remove challenge token from webserver - {{ certificate.domain }}"
+- name: "Remove challenge token from webserver - {{ certificate['domain'] }}"
   ansible.builtin.file:
-    path: "{{ certificate.web_dir }}/{{ acme_ssl_challenge_data['challenge_data'][certificate.domain]['http-01']['resource'] }}"
+    path: "{{ certificate['web_dir'] }}/{{ acme_ssl_challenge_data['challenge_data'][certificate['domain']]['http-01']['resource'] }}"
     state: 'absent'

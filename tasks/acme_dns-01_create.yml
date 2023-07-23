@@ -6,14 +6,14 @@
     name: "{{ dns_packages }}"
     state: 'present'
 
-- name: "Register challenge DNS records - {{ certificate.domain }}"
+- name: "Register challenge DNS records - {{ certificate['domain'] }}"
   community.general.nsupdate:
     server: "{{ acme_ssl_nameserver }}"
     ttl: "60"
     type: "TXT"
-    zone: "{{ certificate.dns_zone | default(certificate.domain.split('.')[1:] | join('.')) }}"
-    record: "{{ acme_ssl_challenge_data['challenge_data'][certificate.domain]['dns-01']['resource'] }}.{{ certificate.domain }}."
-    value: "{{ acme_ssl_challenge_data['challenge_data'][certificate.domain]['dns-01']['resource_value'] }}"
+    zone: "{{ certificate['dns_zone'] | default(certificate['domain'].split('.')[1:] | join('.')) }}"
+    record: "{{ acme_ssl_challenge_data['challenge_data'][certificate['domain']]['dns-01']['resource'] }}.{{ certificate['domain'] }}."
+    value: "{{ acme_ssl_challenge_data['challenge_data'][certificate['domain']]['dns-01']['resource_value'] }}"
     key_algorithm: "{{ (acme_ssl_tsig_key_algo != '') | ternary(acme_ssl_tsig_key_algo, omit) }}"
     key_name: "{{ (acme_ssl_tsig_key_name != '') | ternary(acme_ssl_tsig_key_name, omit) }}"
     key_secret: "{{ (acme_ssl_tsig_key_secret != '') | ternary(acme_ssl_tsig_key_secret, omit) }}"
@@ -21,15 +21,15 @@
   register: 'dns_registered'
   retries: 5
   delay: 3
-  until: not dns_registered.failed
-  when: acme_ssl_challenge_data['authorizations'][certificate.domain]['status'] != 'valid'
+  until: not dns_registered['failed']
+  when: acme_ssl_challenge_data['authorizations'][certificate['domain']]['status'] != 'valid'
 
-- name: "Register additional challenge DNS records - {{ certificate.domain }}"
+- name: "Register additional challenge DNS records - {{ certificate['domain'] }}"
   community.general.nsupdate:
     server: "{{ acme_ssl_nameserver }}"
     ttl: "60"
     type: "TXT"
-    zone: "{{ certificate.dns_zone | default(altname_record.split('.')[1:] | join('.')) }}"
+    zone: "{{ certificate['dns_zone'] | default(altname_record.split('.')[1:] | join('.')) }}"
     record: "{{ acme_ssl_challenge_data['challenge_data'][altname_record]['dns-01']['resource'] }}.{{ altname_record }}."
     value: "{{ acme_ssl_challenge_data['challenge_data'][altname_record]['dns-01']['resource_value'] }}"
     state: 'present'
@@ -39,15 +39,15 @@
   register: 'dns_alt_registered'
   retries: 5
   delay: 3
-  until: not dns_alt_registered.failed
-  loop: "{{ certificate.altname }}"
+  until: not dns_alt_registered['failed']
+  loop: "{{ certificate['altname'] }}"
   loop_control:
     loop_var: 'altname_record'
   when:
-    - certificate.altname is defined
+    - certificate['altname'] is defined
     - acme_ssl_challenge_data['authorizations'][altname_record]['status'] != 'valid'
 
 - name: 'Wait for DNS update to propagate to slaves'  # noqa no-handler
   ansible.builtin.pause:
     seconds: "{{ acme_ssl_dns_wait }}"
-  when: dns_registered.changed or dns_alt_registered.changed
+  when: dns_registered['changed'] or dns_alt_registered['changed']

@@ -1,32 +1,32 @@
 ---
 # All tasks required for the cleanup of the DNS-01 challenge validation
 #
-- name: "Remove challenge DNS records - {{ certificate.domain }}"
+- name: "Remove challenge DNS records - {{ certificate['domain'] }}"
   community.general.nsupdate:
     server: "{{ acme_ssl_nameserver }}"
     ttl: '60'
     type: 'TXT'
-    zone: "{{ certificate.dns_zone | default(certificate.domain.split('.')[1:] | join('.')) }}"
-    record: "{{ acme_ssl_challenge_data['challenge_data'][certificate.domain]['dns-01']['resource'] }}.{{ certificate.domain }}."
-    value: "{{  acme_ssl_challenge_data['challenge_data'][certificate.domain]['dns-01']['resource_value'] }}"
+    zone: "{{ certificate['dns_zone'] | default(certificate['domain'].split('.')[1:] | join('.')) }}"
+    record: "{{ acme_ssl_challenge_data['challenge_data'][certificate['domain']]['dns-01']['resource'] }}.{{ certificate['domain'] }}."
+    value: "{{  acme_ssl_challenge_data['challenge_data'][certificate['domain']]['dns-01']['resource_value'] }}"
     state: 'absent'
     key_algorithm: "{{ (acme_ssl_tsig_key_algo != '') | ternary(acme_ssl_tsig_key_algo, omit) }}"
     key_name: "{{ (acme_ssl_tsig_key_name != '') | ternary(acme_ssl_tsig_key_name, omit) }}"
     key_secret: "{{ (acme_ssl_tsig_key_secret != '') | ternary(acme_ssl_tsig_key_secret, omit) }}"
 
-- name: "Remove additional challenge DNS records - {{ certificate.domain }}"
+- name: "Remove additional challenge DNS records - {{ certificate['domain'] }}"
   community.general.nsupdate:
     server: "{{ acme_ssl_nameserver }}"
     ttl: '60'
     type: 'TXT'
-    zone: "{{ certificate.dns_zone | default(altname_record.split('.')[1:] | join('.')) }}"
+    zone: "{{ certificate['dns_zone'] | default(altname_record.split('.')[1:] | join('.')) }}"
     record: "{{ acme_ssl_challenge_data['challenge_data'][altname_record]['dns-01']['resource'] }}.{{ altname_record }}."
     value: "{{  acme_ssl_challenge_data['challenge_data'][altname_record]['dns-01']['resource_value'] }}"
     state: 'absent'
     key_algorithm: "{{ (acme_ssl_tsig_key_algo != '') | ternary(acme_ssl_tsig_key_algo, omit) }}"
     key_name: "{{ (acme_ssl_tsig_key_name != '') | ternary(acme_ssl_tsig_key_name, omit) }}"
     key_secret: "{{ (acme_ssl_tsig_key_secret != '') | ternary(acme_ssl_tsig_key_secret, omit) }}"
-  loop: "{{ certificate.altname }}"
+  loop: "{{ certificate['altname'] }}"
   loop_control:
     loop_var: 'altname_record'
-  when: certificate.altname is defined
+  when: certificate['altname'] is defined

@@ -1,13 +1,13 @@
 ---
 # What: Generate and request certificates via ACME
 #
-- name: "Reset flag for certificate refresh failed - {{ certificate.domain }}"
+- name: "Reset flag for certificate refresh failed - {{ certificate['domain'] }}"
   ansible.builtin.set_fact:
     acme_refresh_failed: false
 
 - name: 'Check certificate directory'
   ansible.builtin.file:
-    path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}"
+    path: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}"
     state: 'directory'
     mode: '0770'
     owner: "{{ acme_ssl_owner }}"
@@ -15,38 +15,38 @@
 
 - name: 'Check certificate validity'
   block:
-    - name: "Check certificate validity - {{ certificate.domain }}"
+    - name: "Check certificate validity - {{ certificate['domain'] }}"
       community.crypto.x509_certificate_info:
-        path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.cer"
+        path: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.cer"
         valid_at:
           min_validity: "+{{ acme_ssl_validity_min }}d"
       register: 'ssl_cert_info'
-    - name: "Check certificate validity - {{ certificate.domain }}"
+    - name: "Check certificate validity - {{ certificate['domain'] }}"
       ansible.builtin.set_fact:
-        acme_cert_valid: "{{ ssl_cert_info.valid_at.min_validity }}"
+        acme_cert_valid: "{{ ssl_cert_info['valid_at']['min_validity'] }}"
   rescue:
-    - name: "Check certificate validity - {{ certificate.domain }}"
+    - name: "Check certificate validity - {{ certificate['domain'] }}"
       ansible.builtin.set_fact:
         acme_cert_valid: false
 
 - name: 'Clear old files'
   when: not acme_cert_valid
   block:
-    - name: "Clear old files - {{ certificate.domain }}"
+    - name: "Clear old files - {{ certificate['domain'] }}"
       ansible.builtin.file:
         state: 'absent'
-        path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item }}"
+        path: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ item }}"
       loop:
-        - "{{ certificate.domain }}.key"
-        - "{{ certificate.domain }}.csr"
-        - "{{ certificate.domain }}.cer"
-        - "{{ certificate.domain }}_chain.cer"
-        - "{{ certificate.domain }}_fullchain.cer"
+        - "{{ certificate['domain'] }}.key"
+        - "{{ certificate['domain'] }}.csr"
+        - "{{ certificate['domain'] }}.cer"
+        - "{{ certificate['domain'] }}_chain.cer"
+        - "{{ certificate['domain'] }}_fullchain.cer"
         - 'ca.cer'
 
-    - name: "Generating new EC SSL key - {{ certificate.domain }}"
+    - name: "Generating new EC SSL key - {{ certificate['domain'] }}"
       community.crypto.openssl_privatekey:
-        path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
+        path: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.key"
         curve: "{{ acme_ssl_ecparam_curve }}"
         type: "{{ acme_ssl_type }}"
         mode: '0660'
@@ -54,9 +54,9 @@
         group: "{{ acme_ssl_owner }}"
       when: acme_ssl_type == 'ECC'
 
-    - name: "Generating new SSL key - {{ certificate.domain }}"
+    - name: "Generating new SSL key - {{ certificate['domain'] }}"
       community.crypto.openssl_privatekey:
-        path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
+        path: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.key"
         size: "{{ acme_ssl_rsa_bits }}"
         type: "{{ acme_ssl_type }}"
         mode: '0660'
@@ -65,76 +65,76 @@
       when: acme_ssl_type == 'RSA'
 
     - name: 'Generate SAN list'
-      when: certificate.altname is defined
-      block:
-        - name: "Generating SAN list - {{ certificate.domain }}"
+      when: certificate['altname'] is defined
+      lock:
+        - name: "Generating SAN list - {{ certificate['domain'] }}"
           ansible.builtin.set_fact:
-            san_list: "[ '{{ certificate.domain }}' ] + {{ certificate.altname }}"
-        - name: "Adding SAN prefixes - {{ certificate.domain }}"
+            san_list: "'{{ [certificate['domain']] }}' ] + {{ certificate['altname'] }}"
+        - name: "Adding SAN prefixes - {{ certificate['domain'] }}"
           ansible.builtin.set_fact:
             san_list: "{{ san_list | map('regex_replace', '^', 'DNS:') | list }}"
-        - name: "Generating new CSR file with SAN - {{ certificate.domain }}"
+        - name: "Generating new CSR file with SAN - {{ certificate['domain'] }}"
           community.crypto.openssl_csr:
-            path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.csr"
-            privatekey_path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
-            common_name: "{{ certificate.domain }}"
+            path: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.csr"
+            privatekey_path: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.key"
+            common_name: "{{ certificate['domain'] }}"
             subject_alt_name: "{{ san_list }}"
             mode: '0660'
             owner: "{{ acme_ssl_owner }}"
             group: "{{ acme_ssl_owner }}"
 
-    - name: "Generating new CSR file - {{ certificate.domain }}"
+    - name: "Generating new CSR file - {{ certificate['domain'] }}"
       community.crypto.openssl_csr:
-        path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.csr"
-        privatekey_path: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.key"
-        common_name: "{{ certificate.domain }}"
-        subject_alt_name: "DNS:{{ certificate.domain }}"
+        path: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.csr"
+        privatekey_path: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.key"
+        common_name: "{{ certificate['domain'] }}"
+        subject_alt_name: "DNS:{{ certificate['domain'] }}"
         mode: '0660'
         owner: "{{ acme_ssl_owner }}"
         group: "{{ acme_ssl_owner }}"
-      when: certificate.altname is not defined
+      when: certificate['altname'] is not defined
 
-    - name: "Registering new ACME challenge - {{ certificate.domain }}"
+    - name: "Registering new ACME challenge - {{ certificate['domain'] }}"
       community.crypto.acme_certificate:
         account_key_src: "{{ acme_ssl_account_key }}"
-        challenge: "{{ certificate.challenge | default(acme_ssl_default_challenge) }}"
+        challenge: "{{ certificate['challenge'] | default(acme_ssl_default_challenge) }}"
         acme_directory: "{{ acme_ssl_directory }}"
         validate_certs: "{{ acme_ssl_directory_validate }}"
         acme_version: "{{ acme_ssl_directory_version }}"
         remaining_days: "{{ acme_ssl_validity_min }}"
         terms_agreed: "{{ acme_ssl_terms_agreed }}"
-        csr: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.csr"
-        cert: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.cer"
+        csr: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.csr"
+        cert: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.cer"
       register: 'acme_ssl_challenge_data'
 
     - name: "Processing challenge"  # noqa no-handler
       when: not acme_cert_valid
       block:
-        - name: "Processing challenge - {{ certificate.domain }}"
+        - name: "Processing challenge - {{ certificate['domain'] }}"
           ansible.builtin.include_tasks:
-            file: 'acme_{{ certificate.challenge | default(acme_ssl_default_challenge) }}_create.yml'
+            file: "acme_{{ certificate['challenge'] | default(acme_ssl_default_challenge) }}_create.yml"
 
-        - name: "Validating and finishing request - {{ certificate.domain }}"
+        - name: "Validating and finishing request - {{ certificate['domain'] }}"
           community.crypto.acme_certificate:
             account_key_src: "{{ acme_ssl_account_key }}"
-            challenge: "{{ certificate.challenge | default(acme_ssl_default_challenge) }}"
+            challenge: "{{ certificate['challenge'] | default(acme_ssl_default_challenge) }}"
             acme_directory: "{{ acme_ssl_directory }}"
             validate_certs: "{{ acme_ssl_directory_validate }}"
             acme_version: "{{ acme_ssl_directory_version }}"
             remaining_days: "{{ acme_ssl_validity_min }}"
             terms_agreed: "{{ acme_ssl_terms_agreed }}"
-            csr: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.csr"
-            cert: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}.cer"
-            chain: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}_chain.cer"
-            fullchain: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ certificate.domain }}_fullchain.cer"
+            csr: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.csr"
+            cert: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.cer"
+            chain: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}_chain.cer"
+            fullchain: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}_fullchain.cer"
             data: "{{ acme_ssl_challenge_data }}"
             select_chain: "{{ acme_ssl_select_chain | default(omit) }}"
           register: 'cert_validated'
           retries: 6
           delay: 60
-          until: not cert_validated.failed
+          until: not cert_validated['failed']
 
-        - name: "Downloading Issuing CA certificate - {{ certificate.domain }}"
+        - name: "Downloading Issuing CA certificate - {{ certificate['domain'] }}"
           ansible.builtin.uri:
             url: "{{ acme_ssl_ca_url }}"
             force: true
@@ -142,12 +142,12 @@
               - 200
               - 304
             validate_certs: "{{ acme_ssl_directory_validate }}"
-            dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/ca.cer"
+            dest: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/ca.cer"
             mode: '0660'
             owner: "{{ acme_ssl_owner }}"
             group: "{{ acme_ssl_owner }}"
 
-        - name: "Downloading Issuing CA OCSP certificate - {{ certificate.domain }}"
+        - name: "Downloading Issuing CA OCSP certificate - {{ certificate['domain'] }}"
           ansible.builtin.uri:
             url: "{{ acme_ssl_ocsp_url }}"
             force: true
@@ -155,32 +155,32 @@
               - 200
               - 304
             validate_certs: "{{ acme_ssl_directory_validate }}"
-            dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/ocsp.cer"
+            dest: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/ocsp.cer"
             mode: '0660'
             owner: "{{ acme_ssl_owner }}"
             group: "{{ acme_ssl_owner }}"
 
       rescue:
-        - name: "Refreshing certificate failed - {{ certificate.domain }}"
+        - name: "Refreshing certificate failed - {{ certificate['domain'] }}"
           ansible.builtin.set_fact:
             acme_refresh_failed: true
       always:
-        - name: "Cleaning up challenge - {{ certificate.domain }}"
+        - name: "Cleaning up challenge - {{ certificate['domain'] }}"
           ansible.builtin.include_tasks:
-            file: 'acme_{{ certificate.challenge | default(acme_ssl_default_challenge) }}_cleanup.yml'
+            file: "acme_{{ certificate['challenge'] | default(acme_ssl_default_challenge) }}_cleanup.yml"
 
-- name: "Sync certificates to Ansible Master - {{ certificate.domain }}"
+- name: "Sync certificates to Ansible Master - {{ certificate['domain'] }}"
   ansible.builtin.fetch:
-    src: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item }}"
-    dest: "{{ acme_ssl_basedir }}/{{ certificate.domain }}/{{ item }}"
+    src: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ item }}"
+    dest: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ item }}"
     fail_on_missing: false
     flat: true
   loop:
-    - "{{ certificate.domain }}.key"
-    - "{{ certificate.domain }}.csr"
-    - "{{ certificate.domain }}.cer"
-    - "{{ certificate.domain }}_chain.cer"
-    - "{{ certificate.domain }}_fullchain.cer"
+    - "{{ certificate['domain'] }}.key"
+    - "{{ certificate['domain'] }}.csr"
+    - "{{ certificate['domain'] }}.cer"
+    - "{{ certificate['domain'] }}_chain.cer"
+    - "{{ certificate['domain'] }}_fullchain.cer"
     - 'ca.cer'
     - 'ocsp.cer'
   when:
