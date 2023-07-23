@@ -44,7 +44,7 @@ acme_ssl_reload_services: false         # Automatically try to reload supported 
                                         # Apache, Nginx, Proxmox PVEProxy, slapd or Zimbra
 
 acme_ssl_local_ansible: true            # Set to false if the system making the ACME requests is not the Ansible
-                                        # controller
+                                        # controller, this is the case at least in Molecule testing
 
 # DNS TLSA settings (only for TCP services)
 acme_ssl_tlsa_update: true              # Update TLSA records, uses settings for DNS-01 challenge
