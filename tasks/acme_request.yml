@@ -66,13 +66,15 @@
 
     - name: 'Generate SAN list'
       when: certificate['altname'] is defined
-      lock:
+      block:
         - name: "Generating SAN list - {{ certificate['domain'] }}"
           ansible.builtin.set_fact:
-            san_list: "'{{ [certificate['domain']] }}' ] + {{ certificate['altname'] }}"
+            san_list: "{{ [certificate['domain']] + certificate['altname'] }}"
+
         - name: "Adding SAN prefixes - {{ certificate['domain'] }}"
           ansible.builtin.set_fact:
             san_list: "{{ san_list | map('regex_replace', '^', 'DNS:') | list }}"
+
         - name: "Generating new CSR file with SAN - {{ certificate['domain'] }}"
           community.crypto.openssl_csr:
             path: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ certificate['domain'] }}.csr"
