@@ -2,6 +2,7 @@
 - name: 'Prepare Molecule and ACME client nodes'
   hosts: 'localhost,acme-ssl-client'
   gather_facts: false
+  become: true
   tasks:
     - name: 'Create SSH directory'
       ansible.builtin.file:
