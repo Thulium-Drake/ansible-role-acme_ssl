@@ -2,6 +2,8 @@
 - name: 'Clean up'
   hosts: 'localhost'
   gather_facts: false
+  vars:
+    acme_ssl_basedir: '/tmp/acme-ssl'
   tasks:
     - name: 'Remove all ACME files on Ansible master'
       ansible.builtin.file:
