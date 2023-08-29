@@ -85,8 +85,8 @@
             mode: '0640'
           delegate_to: "{{ certificate['server'] }}"
           loop:
-            - { src: "{{ certificate['domain'] }}.key", dest: 'pve-ssl.key' }
-            - { src: "{{ certificate['domain'] }}_fullchain.cer", dest: 'pve-ssl.pem' }
+            - {src: "{{ certificate['domain'] }}.key", dest: 'pve-ssl.key'}
+            - {src: "{{ certificate['domain'] }}_fullchain.cer", dest: 'pve-ssl.pem'}
         - name: 'Restart PVEProxy'
           ansible.builtin.service:
             name: 'pveproxy'
