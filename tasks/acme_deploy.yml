@@ -73,7 +73,7 @@
         (acme_ssl_destserver_pkgs['ansible_facts']['packages']['nginx-full'] is defined) or
         (acme_ssl_destserver_pkgs['ansible_facts']['packages']['nginx-extras'] is defined)
 
-    - name: 'Deploy Proxmox certificate and restart pveproxy'
+    - name: 'Deploy Proxmox Virtual Environment certificate and restart pveproxy'
       when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['pve-manager'] is defined
       block:
         - name: 'Copy certificate files'
@@ -90,6 +90,25 @@
         - name: 'Restart PVEProxy'
           ansible.builtin.service:
             name: 'pveproxy'
+            state: 'restarted'
+
+    - name: 'Deploy Proxmox Backup Server certificate and restart proxmox-backup-proxy'
+      when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['proxmox-backup-server'] is defined
+      block:
+        - name: 'Copy certificate files'
+          ansible.builtin.copy:
+            src: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ item['src'] }}"
+            dest: "/etc/proxmox-backup/{{ item['dest'] }}"
+            owner: 'root'
+            group: 'backup'
+            mode: '0640'
+          delegate_to: "{{ certificate['server'] }}"
+          loop:
+            - {src: "{{ certificate['domain'] }}.key", dest: 'proxy.key'}
+            - {src: "{{ certificate['domain'] }}_fullchain.cer", dest: 'proxy.pem'}
+        - name: 'Restart proxmox-backup-proxy'
+          ansible.builtin.service:
+            name: 'proxmox-backup-proxy'
             state: 'restarted'
 
     - name: 'Deploy Zimbra certificate and restart'  # yamllint disable rule:line-length
