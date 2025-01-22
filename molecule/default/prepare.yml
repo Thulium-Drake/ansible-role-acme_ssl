@@ -26,6 +26,7 @@
         mode: '0600'
         owner: 'root'
         group: 'root'
+
     - name: 'Add Pebble to hosts file'
       ansible.builtin.lineinfile:
         path: '/etc/hosts'
@@ -44,6 +45,7 @@
       ansible.builtin.apt:
         update_cache: true
       when: ansible_facts['os_family'] == 'Debian'
+
     - name: 'Refresh YUM'
       ansible.builtin.dnf:
         update_cache: true
@@ -58,6 +60,7 @@
         path: '/usr/bin/python'
         state: 'link'
         src: '/usr/bin/python3'
+
     - name: 'Install tools'
       ansible.builtin.apt:
         name:
@@ -70,6 +73,7 @@
           - 'ssh'
         state: 'present'
         update_cache: true
+
     - name: 'Configure nsupdate'
       ansible.builtin.copy:
         dest: '/etc/powerdns/pdns.d/nsupdate.conf'
@@ -79,10 +83,17 @@
         mode: '0644'
         owner: 'root'
         group: 'root'
+
     - name: 'Disable BIND backend'
       ansible.builtin.file:
-        path: '/etc/powerdns/pdns.d/bind.conf'
+        path: "{{ path }}"
         state: 'absent'
+      loop:
+        - '/etc/powerdns/pdns.d/bind.conf'
+        - '/etc/powerdns/named.conf'
+      loop_control:
+        loop_var: 'path'
+
     - name: 'Configure SQLite backend'
       ansible.builtin.copy:
         dest: '/etc/powerdns/pdns.d/sqlite.conf'
@@ -94,6 +105,7 @@
           master
           daemon
           guardian
+
     - name: 'Setup PowerDNS DB'
       ansible.builtin.shell: |
         sqlite3 /var/lib/powerdns/zones.slave.d/powerdns.sqlite3 < /usr/share/doc/pdns-backend-sqlite3/schema.sqlite3.sql
@@ -101,16 +113,19 @@
       args:
         creates: '/root/db_done'
       changed_when: true
+
     - name: 'Correct permissions on DB'
       ansible.builtin.file:
         path: '/var/lib/powerdns/zones.slave.d/powerdns.sqlite3'
         owner: 'pdns'
         group: 'pdns'
+
     - name: 'Set root authorized_key'
       ansible.posix.authorized_key:
         user: 'root'
         key: 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINBHe2fsfMz5ulMqAXJY1PWBNymcemXiPI7BW31/5yEh'
         state: 'present'
+
     - name: 'Allow SSH password logins'
       ansible.builtin.lineinfile:
         path: '/etc/ssh/sshd_config'
@@ -120,6 +135,7 @@
         group: 'root'
         mode: '0644'
         unsafe_writes: true
+
     - name: 'Configure nginx port'
       ansible.builtin.copy:
         dest: '/etc/nginx/sites-enabled/pebble.conf'
@@ -132,6 +148,7 @@
               try_files $uri $uri/ =404;
             }
           }
+
     - name: 'Restart services'
       ansible.builtin.service:
         name: "{{ service }}"
@@ -142,6 +159,7 @@
         - 'ssh'
       loop_control:
         loop_var: 'service'
+
     - name: 'Render default zone'
       ansible.builtin.copy:
         dest: '/root/zone'
@@ -153,9 +171,11 @@
         owner: 'root'
         group: 'root'
         mode: '0644'
+
     - name: 'Create DNS zone'
       ansible.builtin.command: 'pdnsutil load-zone test.lab /root/zone'
       changed_when: true
+
     - name: 'Fill DNS zone'
       community.general.nsupdate:
         server: '127.0.0.1'
@@ -172,3 +192,8 @@
         - 'altname'
       loop_control:
         loop_var: 'record'
+
+    - name: 'Restart pdns'  # For some reason it needs another kick to stop refusing queries
+      ansible.builtin.service:
+        name: 'pdns'
+        state: 'restarted'
