@@ -13,11 +13,19 @@
         state: 'present'
       delegate_to: "{{ certificate['server'] }}"
 
+    - name: 'Create basedir on target'
+      ansible.builtin.file:
+        path: "{{ acme_ssl_destdir }}"
+        state: 'directory'
+        mode: '0750'
+        group: 'ssl-cert'
+      delegate_to: "{{ certificate['server'] }}"
+
     - name: "Create destdir on target - {{ certificate['domain'] }}"
       ansible.builtin.file:
         path: "{{ acme_ssl_destdir }}/{{ certificate['domain'] }}"
         state: 'directory'
-        mode: '0750'
+        mode: '0755'  # Allow wider permissions here, protection is done using the parent folder and this allows use in podman containers
         group: 'ssl-cert'
       delegate_to: "{{ certificate['server'] }}"
 

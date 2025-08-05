@@ -9,11 +9,11 @@ repos:
       - id: 'check-added-large-files'
       - id: 'check-merge-conflict'
   - repo: 'https://github.com/Thulium-Drake/pre-commit-hooks'
-    rev: '0.0.2'
+    rev: '0.0.3'
     hooks:
       - id: 'ansible-sign'
   - repo: 'https://github.com/ansible-community/ansible-lint.git'
-    rev: 'v25.1.0'
+    rev: 'v25.7.0'
     hooks:
       - id: ansible-lint
         files: \.(yaml|yml)$
