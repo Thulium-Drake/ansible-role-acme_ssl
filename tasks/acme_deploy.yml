@@ -119,6 +119,25 @@
             name: 'proxmox-backup-proxy'
             state: 'restarted'
 
+    - name: 'Deploy Proxmox Datacenter Manager Server certificate and restart proxmox-datacenter-api'
+      when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['proxmox-datacenter-manager'] is defined
+      block:
+        - name: 'Copy certificate files'
+          ansible.builtin.copy:
+            src: "{{ acme_ssl_basedir }}/{{ certificate['domain'] }}/{{ item['src'] }}"
+            dest: "/etc/proxmox-datacenter-manager/auth/{{ item['dest'] }}"
+            owner: 'root'
+            group: 'www-data'
+            mode: '0640'
+          delegate_to: "{{ certificate['server'] }}"
+          loop:
+            - {src: "{{ certificate['domain'] }}.key", dest: 'api.key'}
+            - {src: "{{ certificate['domain'] }}_fullchain.cer", dest: 'api.pem'}
+        - name: 'Restart proxmox-datacenter-api'
+          ansible.builtin.service:
+            name: 'proxmox-datacenter-api'
+            state: 'restarted'
+
     - name: 'Deploy Zimbra certificate and restart'  # yamllint disable rule:line-length
       when: acme_ssl_destserver_pkgs['ansible_facts']['packages']['zimbra-core'] is defined
       block:
