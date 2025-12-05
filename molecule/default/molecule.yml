@@ -42,7 +42,7 @@ platforms:
       - name: "acmenet"
         ipv4_address: '10.30.50.11'
   - name: 'pebble'
-    image: 'letsencrypt/pebble'
+    image: 'ghcr.io/letsencrypt/pebble'
     command: 'pebble --dnsserver 10.30.50.11:53'
     pre_build_image: true
     privileged: true

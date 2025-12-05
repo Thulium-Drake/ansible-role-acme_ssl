@@ -19,6 +19,7 @@ jobs:
       - name: Molecule tests
         run: |
           cd ${{ gitea.workspace }}
+          molecule --version
           molecule destroy
           molecule syntax
           if test -e molecule/default/test.convergence
