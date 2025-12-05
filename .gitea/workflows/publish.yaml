@@ -28,6 +28,7 @@ jobs:
           username: ${{ env.GITHUB_ACTOR }}
           password: ${{ secrets.CONTAINER_REGISTRY_TOKEN }}
           registry: ${{ steps.set-registry-url.outputs.registry-url }}
+          auth_file_path: /tmp/storage-run-0/containers/auth.json
 
       - name: Molecule tests
         run: |
