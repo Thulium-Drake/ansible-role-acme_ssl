@@ -13,8 +13,21 @@ jobs:
   publish:
     runs-on: rhel-latest
     steps:
+      - name: Set Container Registry URL
+        id: set-registry-url
+        run: |
+          echo "registry-url=$(echo $GITHUB_SERVER_URL | sed 's#https\?://##')" >> $GITHUB_OUTPUT
+        shell: bash
+
       - name: Check out code
         uses: actions/checkout@v4
+
+      - name: Log in to Forgejo Container Registry
+        uses: redhat-actions/podman-login@v1
+        with:
+          username: ${{ env.GITHUB_ACTOR }}
+          password: ${{ secrets.CONTAINER_REGISTRY_TOKEN }}
+          registry: ${{ steps.set-registry-url.outputs.registry-url }}
 
       - name: Molecule tests
         run: |
