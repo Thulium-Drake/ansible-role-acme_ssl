@@ -1,4 +1,4 @@
-8bc415e9d15d79729ccc41e92a344646d3009488c78ea57ddb69510d80bd6686  .gitea/workflows/publish.yaml
+de9511db4d3a67ea4c9c0a3c18bba69ec1294d7ca71b6e1e59e0163d7ad6052f  .gitea/workflows/publish.yaml
 2ac6fe600cf545719d568491d70135cf29a51701c8b078242487562c3c43e3c8  .gitea/workflows/test.yaml
 364062fe99807fe026520e5c6d70b3cbfffa53d3bd320e103379921aaea3ccd0  .gitignore
 4027a3e9a33a38d511dd8280d2919a8acafa8c04c51e2eba2a4b4574e7ef4392  .pre-commit-config.yaml
