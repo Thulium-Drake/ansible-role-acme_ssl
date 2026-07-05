@@ -1,0 +1,25 @@
+---
+name: Validate Ansible Role
+
+on: # noqa yaml[truthy]
+  workflow_dispatch:
+  schedule:
+    - cron: '@daily'
+  push:
+
+jobs:
+  define-matrix:
+    runs-on: rhel-latest
+    steps:
+      - id: define
+        run: |
+          echo os-distros=$(jo -a debian13 rockylinux9) >> "$FORGEJO_OUTPUT"
+    outputs:
+      os-distros: ${{ steps.define.outputs.os-distros }}
+
+  include-common-matrix-workflow:
+    needs: define-matrix
+    uses: Element-Networks/ci_workflows/.forgejo/workflows/ansible_role.yaml@main
+    secrets: inherit
+    with:
+      os-distros: ${{ needs.define-matrix.outputs.os-distros }}
